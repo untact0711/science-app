@@ -243,7 +243,7 @@ function MainApp({ apiKey, onResetKey }) {
         ));
       }
     }
-  }, [apiKey]);
+ }, [apiKey, mapToStandardDb]);
 
   const handleFileUpload = (e) => {
     processFiles(Array.from(e.target.files));
