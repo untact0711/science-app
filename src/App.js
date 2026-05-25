@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Upload, Trash2, Copy, CheckCircle2, Image as ImageIcon, Loader2, AlertCircle, ClipboardPaste, FileText, HelpCircle, KeyRound, LogOut } from 'lucide-react';
+import { Upload, Trash2, Copy, CheckCircle2, Loader2, AlertCircle, ClipboardPaste, FileText, HelpCircle, KeyRound, LogOut, FlaskConical } from 'lucide-react';
 
 const STANDARD_EQUIPMENT = [
   { category: "공통-측정교구", name: "전자저울", spec: "칭량 100~500 g, 감량 0.1 g", requirement: "4학생당 1", type: "필수", keywords: ["전자저울", "저울"] },
@@ -36,11 +36,7 @@ const STANDARD_EQUIPMENT = [
   { category: "안전장구", name: "보안경", spec: "안경식", requirement: "1학생당 1", type: "필수", keywords: ["보안경", "안전경", "고글"] }
 ];
 
-const EXCLUDED_KEYWORDS = [
-  '거름종이','거름 종이','시약포지','약포지','시약 포지','약 포지',
-  '유산지','리트머스','pH시험지','시약','용액','물','얼음',
-  '에탄올','메탄올','가루','소금','설탕','모래','색소'
-];
+const EXCLUDED_KEYWORDS = ['거름종이','거름 종이','시약포지','약포지','시약 포지','약 포지','유산지','리트머스','pH시험지','시약','용액','물','얼음','에탄올','메탄올','가루','소금','설탕','모래','색소'];
 
 function ApiKeyScreen({ onSave }) {
   const [inputKey, setInputKey] = useState('');
@@ -48,36 +44,37 @@ function ApiKeyScreen({ onSave }) {
   const handleSave = () => {
     const trimmed = inputKey.trim();
     if (!trimmed) { setError('API 키를 입력해주세요.'); return; }
-    if (!trimmed.startsWith('AIza')) { setError('올바른 Gemini API 키 형식이 아닙니다. (AIza 로 시작해야 합니다)'); return; }
+    if (!trimmed.startsWith('AIza')) { setError('올바른 형식이 아닙니다. (AIza 로 시작해야 합니다)'); return; }
     localStorage.setItem('gemini_api_key', trimmed);
     onSave(trimmed);
   };
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 w-full max-w-md">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="bg-blue-50 p-2.5 rounded-xl"><KeyRound size={24} className="text-blue-600" /></div>
-          <h1 className="text-2xl font-bold text-slate-900">🔬 과학교구 분석기</h1>
+    <div style={{minHeight:'100vh',background:'#f0f4ff',display:'flex',alignItems:'center',justifyContent:'center',padding:'2rem',fontFamily:"'Pretendard', 'Noto Sans KR', sans-serif"}}>
+      <div style={{background:'#fff',borderRadius:'20px',boxShadow:'0 8px 40px rgba(67,97,238,0.10)',padding:'3rem',width:'100%',maxWidth:'440px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'8px'}}>
+          <div style={{background:'#eef2ff',borderRadius:'12px',padding:'10px',display:'flex'}}>
+            <KeyRound size={24} color="#4361ee" />
+          </div>
+          <div>
+            <div style={{fontSize:'22px',fontWeight:'700',color:'#1a1a2e'}}>🔬 과학교구 분석기</div>
+            <div style={{fontSize:'12px',color:'#7c83a0',marginTop:'2px'}}>2022 개정 기준</div>
+          </div>
         </div>
-        <p className="text-slate-500 text-sm mt-3 mb-6 leading-relaxed">
-          이 앱은 <strong>본인의 Gemini API 키</strong>를 사용하여 이미지를 분석합니다.<br />
-          키는 이 기기의 브라우저에만 저장되며, 외부 서버로 전송되지 않습니다.
+        <p style={{color:'#5a6070',fontSize:'14px',lineHeight:'1.7',margin:'1.5rem 0'}}>
+          본인의 <strong style={{color:'#4361ee'}}>Gemini API 키</strong>를 입력하세요.<br/>키는 이 브라우저에만 저장되며 외부로 전송되지 않습니다.
         </p>
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Gemini API Key</label>
-        <input
-          type="text" value={inputKey}
-          onChange={(e) => { setInputKey(e.target.value); setError(''); }}
-          onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-          placeholder="AIzaSy..."
-          className="w-full border border-slate-300 rounded-xl px-4 py-3 font-mono text-sm mb-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        <label style={{fontSize:'11px',fontWeight:'700',color:'#9aa0b4',letterSpacing:'0.08em',textTransform:'uppercase',display:'block',marginBottom:'8px'}}>Gemini API Key</label>
+        <input type="text" value={inputKey} onChange={e=>{setInputKey(e.target.value);setError('');}} onKeyDown={e=>e.key==='Enter'&&handleSave()} placeholder="AIzaSy..."
+          style={{width:'100%',border:error?'1.5px solid #ef4444':'1.5px solid #e2e8f0',borderRadius:'12px',padding:'14px 16px',fontFamily:'monospace',fontSize:'13px',outline:'none',boxSizing:'border-box',marginBottom:'6px',transition:'border-color 0.2s'}}
         />
-        {error && <p className="text-red-500 text-xs mb-3 flex items-center gap-1"><AlertCircle size={12} /> {error}</p>}
-        {!error && <div className="mb-3" />}
-        <button onClick={handleSave} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-all text-sm">저장하고 시작하기</button>
-        <p className="text-xs text-slate-400 mt-5 text-center leading-relaxed">
-          API 키가 없으신가요?{' '}
-          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-500 underline underline-offset-2">Google AI Studio</a>
-          에서 무료로 발급받을 수 있습니다.
+        {error && <p style={{color:'#ef4444',fontSize:'12px',marginBottom:'12px',display:'flex',alignItems:'center',gap:'4px'}}><AlertCircle size={12}/>{error}</p>}
+        {!error && <div style={{height:'18px'}}/>}
+        <button onClick={handleSave} style={{width:'100%',background:'linear-gradient(135deg,#4361ee,#7c3aed)',color:'#fff',border:'none',borderRadius:'12px',padding:'14px',fontWeight:'700',fontSize:'15px',cursor:'pointer',letterSpacing:'0.02em'}}>
+          저장하고 시작하기
+        </button>
+        <p style={{fontSize:'12px',color:'#b0b8d0',marginTop:'1.5rem',textAlign:'center'}}>
+          키가 없으신가요?{' '}
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" style={{color:'#4361ee',textDecoration:'underline'}}>Google AI Studio</a>에서 무료 발급
         </p>
       </div>
     </div>
@@ -90,377 +87,355 @@ function MainApp({ apiKey, onResetKey }) {
   const [copiedCardId, setCopiedCardId] = useState(null);
   const fileInputRef = useRef(null);
 
-  const getBase64 = (file) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = (error) => reject(error);
-    });
+  const getBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+  });
 
   const mapToStandardDb = useCallback((extractedItems) => {
     const mapped = extractedItems.map((item) => {
-      const normalizedItem = item.replace(/\s+/g, '');
-      let found = STANDARD_EQUIPMENT.find((std) =>
-        std.keywords.some((kw) => normalizedItem === kw.replace(/\s+/g, ''))
-      );
-      if (!found) {
-        found = STANDARD_EQUIPMENT.find((std) =>
-          std.keywords.some((kw) => {
-            const normalizedKw = kw.replace(/\s+/g, '');
-            if (normalizedKw === '장갑' && normalizedItem.includes('내열')) return false;
-            if (normalizedKw === '장갑' && normalizedItem.includes('고무')) return false;
-            return normalizedItem.includes(normalizedKw);
-          })
-        );
-      }
+      const n = item.replace(/\s+/g, '');
+      let found = STANDARD_EQUIPMENT.find(s => s.keywords.some(k => n === k.replace(/\s+/g, '')));
+      if (!found) found = STANDARD_EQUIPMENT.find(s => s.keywords.some(k => {
+        const nk = k.replace(/\s+/g, '');
+        if (nk === '장갑' && n.includes('내열')) return false;
+        if (nk === '장갑' && n.includes('고무')) return false;
+        return n.includes(nk);
+      }));
       return { original: item, standard: found || null };
     });
-    const uniqueMapped = [];
-    const seen = new Set();
-    mapped.forEach((item) => {
-      const key = item.standard ? `std_${item.standard.name}` : `org_${item.original.replace(/\s+/g, '')}`;
-      if (!seen.has(key)) { seen.add(key); uniqueMapped.push(item); }
+    const unique = []; const seen = new Set();
+    mapped.forEach(item => {
+      const key = item.standard ? `std_${item.standard.name}` : `org_${item.original.replace(/\s+/g,'')}`;
+      if (!seen.has(key)) { seen.add(key); unique.push(item); }
     });
-    uniqueMapped.sort((a, b) => {
-      if (a.standard && !b.standard) return -1;
-      if (!a.standard && b.standard) return 1;
-      return 0;
-    });
-    return uniqueMapped;
+    unique.sort((a,b) => { if(a.standard&&!b.standard) return -1; if(!a.standard&&b.standard) return 1; return 0; });
+    return unique;
   }, []);
 
   const extractEquipmentFromImage = useCallback(async (base64Data, mimeType) => {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
-    const promptText = `
-    당신은 텍스트 판독 및 과학교구 추출 전문가입니다.
-    업로드된 이미지는 교과서 실험의 '준비물' 텍스트 부분만 아주 얇게 잘라낸 캡처 조각이거나 전체 페이지입니다.
+    const promptText = `당신은 텍스트 판독 및 과학교구 추출 전문가입니다. 업로드된 이미지는 교과서 실험의 '준비물' 텍스트 부분입니다.
     [핵심 임무]
-    1. 2022 개정 과학교구 설비 기준표에 해당하는 정식 교구(비커, 온도계, 스마트 기기 등)와 일반 도구(가위, 자, 테이프 등)만 추출하세요.
-    2. [강력 제외] 물, 에탄올, 시약 등의 '액체/화학 물질'과 거름종이, 시약포지, 약포지 등 1회성 '소모품류'는 목록에서 절대 추출하지 마세요.
-    결과는 반드시 제공된 JSON 스키마에 따라 'equipment' 배열로 응답하세요.
-    `;
+    1. 2022 개정 과학교구 설비 기준표에 해당하는 정식 교구와 일반 도구만 추출하세요.
+    2. [강력 제외] 물, 에탄올, 시약 등 액체/화학 물질과 거름종이, 약포지 등 소모품은 절대 추출하지 마세요.
+    결과는 반드시 'equipment' 배열로 응답하세요.`;
     const payload = {
-      contents: [{ role: 'user', parts: [{ text: promptText }, { inlineData: { mimeType, data: base64Data } }] }],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        responseSchema: { type: 'OBJECT', properties: { equipment: { type: 'ARRAY', items: { type: 'STRING' } } }, required: ['equipment'] },
-      },
+      contents: [{ role:'user', parts:[{text:promptText},{inlineData:{mimeType,data:base64Data}}] }],
+      generationConfig: { responseMimeType:'application/json', responseSchema:{type:'OBJECT',properties:{equipment:{type:'ARRAY',items:{type:'STRING'}}},required:['equipment']} }
     };
-    const maxRetries = 5;
-    const delays = [1000, 2000, 4000, 8000, 16000];
-    for (let i = 0; i < maxRetries; i++) {
+    const delays = [1000,2000,4000,8000,16000];
+    for (let i=0;i<5;i++) {
       try {
-        const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        if (!response.ok) throw new Error(`API 통신 에러 (${response.status})`);
-        const result = await response.json();
+        const res = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        if (!res.ok) throw new Error(`${res.status}`);
+        const result = await res.json();
         const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
         if (text) {
           try {
             const parsed = JSON.parse(text);
-            const rawEquipment = parsed.equipment || [];
-            return rawEquipment.filter((item) => {
-              const normalizedItem = item.replace(/\s+/g, '');
-              return !EXCLUDED_KEYWORDS.some((kw) => normalizedItem.includes(kw.replace(/\s+/g, '')));
+            return (parsed.equipment||[]).filter(item => {
+              const ni = item.replace(/\s+/g,'');
+              return !EXCLUDED_KEYWORDS.some(kw=>ni.includes(kw.replace(/\s+/g,'')));
             });
           } catch { return []; }
         }
         return [];
-      } catch (error) {
-        if (i === maxRetries - 1) throw error;
-        await new Promise((r) => setTimeout(r, delays[i]));
-      }
+      } catch(err) { if(i===4) throw err; await new Promise(r=>setTimeout(r,delays[i])); }
     }
   }, [apiKey]);
 
   const processFiles = useCallback(async (files) => {
-    if (!files || files.length === 0) return;
+    if (!files||files.length===0) return;
     for (const file of files) {
-      const tbId = Date.now() + Math.random();
-      const ext = file.name ? file.name.split('.').pop().toLowerCase() : '';
-      const isHwp = ext === 'hwp' || ext === 'hwpx';
-      setTextbooks((prev) => {
-        const title = `교과서 ${prev.length + 1}`;
-        return [...prev, { id: tbId, title, fileName: file.name || 'Pasted Content', imageUrl: URL.createObjectURL(file), isLoading: !isHwp, isHwp, isPdf: ext === 'pdf' || file.type === 'application/pdf', items: [], error: null }];
-      });
-      if (isHwp) {
-        setTextbooks((prev) => prev.map((tb) => tb.id === tbId ? { ...tb, isLoading: false, error: 'HWP 파일은 화면을 캡처하여 Ctrl+V로 붙여넣어 주세요.' } : tb));
-        continue;
-      }
+      const tbId = Date.now()+Math.random();
+      const ext = file.name?file.name.split('.').pop().toLowerCase():'';
+      const isHwp = ext==='hwp'||ext==='hwpx';
+      setTextbooks(prev => [...prev, {id:tbId,title:`교과서 ${prev.length+1}`,fileName:file.name||'Pasted',imageUrl:URL.createObjectURL(file),isLoading:!isHwp,isHwp,isPdf:ext==='pdf'||file.type==='application/pdf',items:[],error:null}]);
+      if (isHwp) { setTextbooks(prev=>prev.map(tb=>tb.id===tbId?{...tb,isLoading:false,error:'HWP는 캡처 후 Ctrl+V로 붙여넣어 주세요.'}:tb)); continue; }
       try {
         const base64 = await getBase64(file);
-        let targetMimeType = file.type;
-        if (ext === 'pdf') targetMimeType = 'application/pdf';
-        if (!targetMimeType || (!targetMimeType.startsWith('image/') && targetMimeType !== 'application/pdf')) targetMimeType = 'image/png';
-        const extracted = await extractEquipmentFromImage(base64, targetMimeType);
-        const mappedItems = mapToStandardDb(extracted);
-        setTextbooks((prev) => prev.map((tb) => tb.id === tbId ? { ...tb, isLoading: false, items: mappedItems } : tb));
-      } catch {
-        setTextbooks((prev) => prev.map((tb) => tb.id === tbId ? { ...tb, isLoading: false, error: '서버와 통신 중 문제가 발생했습니다. 다시 시도해 주세요.' } : tb));
-      }
+        let mime = file.type;
+        if (ext==='pdf') mime='application/pdf';
+        if (!mime||(!mime.startsWith('image/')&&mime!=='application/pdf')) mime='image/png';
+        const extracted = await extractEquipmentFromImage(base64,mime);
+        const items = mapToStandardDb(extracted);
+        setTextbooks(prev=>prev.map(tb=>tb.id===tbId?{...tb,isLoading:false,items}:tb));
+      } catch { setTextbooks(prev=>prev.map(tb=>tb.id===tbId?{...tb,isLoading:false,error:'통신 오류가 발생했습니다. 다시 시도해 주세요.'}:tb)); }
     }
   }, [extractEquipmentFromImage, mapToStandardDb]);
 
-  const handleFileUpload = (e) => {
-    processFiles(Array.from(e.target.files));
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
+  const handleFileUpload = e => { processFiles(Array.from(e.target.files)); if(fileInputRef.current) fileInputRef.current.value=''; };
 
   useEffect(() => {
-    const handlePaste = (e) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
-      const filesToProcess = [];
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1 || items[i].type.indexOf('pdf') !== -1) {
-          const file = items[i].getAsFile();
-          if (file) filesToProcess.push(file);
-        }
-      }
-      if (filesToProcess.length > 0) processFiles(filesToProcess);
+    const handlePaste = e => {
+      const items = e.clipboardData?.items; if(!items) return;
+      const files = [];
+      for(let i=0;i<items.length;i++) if(items[i].type.includes('image')||items[i].type.includes('pdf')) { const f=items[i].getAsFile(); if(f) files.push(f); }
+      if(files.length>0) processFiles(files);
     };
-    window.addEventListener('paste', handlePaste);
-    return () => window.removeEventListener('paste', handlePaste);
+    window.addEventListener('paste',handlePaste);
+    return ()=>window.removeEventListener('paste',handlePaste);
   }, [processFiles]);
 
-  const removeTextbook = (id) => {
-    setTextbooks((prev) => prev.filter((tb) => tb.id !== id).map((tb, idx) => ({ ...tb, title: `교과서 ${idx + 1}` })));
-  };
+  const removeTextbook = id => setTextbooks(prev=>prev.filter(tb=>tb.id!==id).map((tb,i)=>({...tb,title:`교과서 ${i+1}`})));
 
   const generateAnalysisTable = () => {
-    const aggregated = {};
-    textbooks.forEach((tb) => {
-      if (tb.isLoading || tb.error) return;
-      tb.items.forEach((item) => {
-        const key = item.standard ? item.standard.name : item.original;
-        if (!aggregated[key]) {
-          aggregated[key] = { category: item.standard ? item.standard.category : '기타 (기준표 외)', name: item.standard ? item.standard.name : item.original, spec: item.standard ? item.standard.spec : '-', requirement: item.standard ? item.standard.requirement : '-', type: item.standard ? item.standard.type : '-', textbooks: new Set() };
-        }
-        aggregated[key].textbooks.add(tb.title);
+    const agg = {};
+    textbooks.forEach(tb => {
+      if(tb.isLoading||tb.error) return;
+      tb.items.forEach(item => {
+        const key = item.standard?item.standard.name:item.original;
+        if(!agg[key]) agg[key]={category:item.standard?item.standard.category:'기타 (기준표 외)',name:item.standard?item.standard.name:item.original,spec:item.standard?item.standard.spec:'-',requirement:item.standard?item.standard.requirement:'-',type:item.standard?item.standard.type:'-',textbooks:new Set()};
+        agg[key].textbooks.add(tb.title);
       });
     });
-    const resultTable = Object.values(aggregated).map((item) => {
-      const isCommon = item.textbooks.size === textbooks.filter((t) => !t.error).length && item.textbooks.size > 1;
-      return { ...item, remarks: isCommon ? '공통' : Array.from(item.textbooks).join(', ') };
+    const result = Object.values(agg).map(item => {
+      const isCommon = item.textbooks.size===textbooks.filter(t=>!t.error).length&&item.textbooks.size>1;
+      return {...item,remarks:isCommon?'공통':Array.from(item.textbooks).join(', ')};
     });
-    const order = { '공통-측정교구': 1, '공통-일반교구': 2, '안전장구': 3, '기타 (기준표 외)': 4 };
-    resultTable.sort((a, b) => (order[a.category] || 5) - (order[b.category] || 5));
-    return resultTable;
+    const order = {'공통-측정교구':1,'공통-일반교구':2,'안전장구':3,'기타 (기준표 외)':4};
+    result.sort((a,b)=>(order[a.category]||5)-(order[b.category]||5));
+    return result;
   };
 
   const analysisData = generateAnalysisTable();
 
-  const copyToHWP = (withHeader = true) => {
-    if (analysisData.length === 0) return;
-    const escapeHtml = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const escapeTsv = (v) => String(v ?? '').replace(/\t/g, ' ').replace(/\n/g, ' ').replace(/\r/g, '');
-    const HEADERS = ['영역', '교구 종목', '규격', '소요 기준', '분류', '비고'];
-    const tsvLines = [];
-    if (withHeader) tsvLines.push(HEADERS.map(escapeTsv).join('\t'));
-    analysisData.forEach((row) => { tsvLines.push([row.category, row.name, row.spec, row.requirement, row.type, row.remarks].map(escapeTsv).join('\t')); });
-    const tsv = tsvLines.join('\r\n');
-    let html = `<table border="1" style="border-collapse: collapse;">`;
-    if (withHeader) html += `<tr>${HEADERS.map((h) => `<th>${escapeHtml(h)}</th>`).join('')}</tr>`;
-    analysisData.forEach((row) => { html += `<tr>${[row.category, row.name, row.spec, row.requirement, row.type, row.remarks].map((v) => `<td>${escapeHtml(v)}</td>`).join('')}</tr>`; });
-    html += `</table>`;
-    const container = document.createElement('div');
-    container.innerHTML = html;
-    container.style.position = 'fixed';
-    container.style.left = '-9999px';
-    document.body.appendChild(container);
-    const handleCopy = (e) => { e.clipboardData.setData('text/html', html); e.clipboardData.setData('text/plain', tsv); e.preventDefault(); };
-    container.addEventListener('copy', handleCopy);
-    const selection = window.getSelection();
-    const range = document.createRange();
-    range.selectNodeContents(container);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    try {
-      document.execCommand('copy');
-      setCopyState(withHeader ? 'copiedWithHeader' : 'copiedDataOnly');
-      setTimeout(() => setCopyState('idle'), 3000);
-    } catch { alert('클립보드 복사에 실패했습니다.'); }
-    finally {
-      container.removeEventListener('copy', handleCopy);
-      selection.removeAllRanges();
-      document.body.removeChild(container);
-    }
+  const copyToHWP = (withHeader=true) => {
+    if(analysisData.length===0) return;
+    const eh = v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const et = v=>String(v??'').replace(/\t/g,' ').replace(/\n/g,' ').replace(/\r/g,'');
+    const H=['영역','교구 종목','규격','소요 기준','분류','비고'];
+    const tsv=[...(withHeader?[H.map(et).join('\t')]:[]),...analysisData.map(r=>[r.category,r.name,r.spec,r.requirement,r.type,r.remarks].map(et).join('\t'))].join('\r\n');
+    let html=`<table border="1" style="border-collapse:collapse;">${withHeader?`<tr>${H.map(h=>`<th>${eh(h)}</th>`).join('')}</tr>`:''}${analysisData.map(r=>`<tr>${[r.category,r.name,r.spec,r.requirement,r.type,r.remarks].map(v=>`<td>${eh(v)}</td>`).join('')}</tr>`).join('')}</table>`;
+    const c=document.createElement('div'); c.innerHTML=html; c.style.cssText='position:fixed;left:-9999px;'; document.body.appendChild(c);
+    const hc=e=>{e.clipboardData.setData('text/html',html);e.clipboardData.setData('text/plain',tsv);e.preventDefault();};
+    c.addEventListener('copy',hc);
+    const sel=window.getSelection(); const r=document.createRange(); r.selectNodeContents(c); sel.removeAllRanges(); sel.addRange(r);
+    try { document.execCommand('copy'); setCopyState(withHeader?'copiedWithHeader':'copiedDataOnly'); setTimeout(()=>setCopyState('idle'),3000); }
+    catch { alert('복사 실패'); }
+    finally { c.removeEventListener('copy',hc); sel.removeAllRanges(); document.body.removeChild(c); }
   };
 
-  const handleCopyCardList = (tb) => {
-    if (!tb.items || tb.items.length === 0) return;
-    const listText = tb.items.map((item) => (item.standard ? item.standard.name : item.original)).join(', ');
-    const textArea = document.createElement('textarea');
-    textArea.value = listText;
-    document.body.appendChild(textArea);
-    textArea.select();
-    try { document.execCommand('copy'); setCopiedCardId(tb.id); setTimeout(() => setCopiedCardId(null), 2000); }
-    catch (err) { console.error(err); }
-    finally { document.body.removeChild(textArea); }
+  const handleCopyCardList = tb => {
+    if(!tb.items||tb.items.length===0) return;
+    const t=document.createElement('textarea'); t.value=tb.items.map(i=>i.standard?i.standard.name:i.original).join(', '); document.body.appendChild(t); t.select();
+    try { document.execCommand('copy'); setCopiedCardId(tb.id); setTimeout(()=>setCopiedCardId(null),2000); } catch(e){console.error(e);} finally { document.body.removeChild(t); }
   };
+
+  const S = {
+    page: {minHeight:'100vh',background:'#f0f4ff',fontFamily:"'Pretendard','Noto Sans KR',sans-serif",padding:'0'},
+    header: {background:'linear-gradient(135deg,#4361ee 0%,#7c3aed 100%)',padding:'1.5rem 2.5rem',display:'flex',alignItems:'center',justifyContent:'space-between',boxShadow:'0 4px 20px rgba(67,97,238,0.25)'},
+    headerTitle: {color:'#fff',fontSize:'22px',fontWeight:'800',display:'flex',alignItems:'center',gap:'10px',letterSpacing:'-0.02em'},
+    headerSub: {color:'rgba(255,255,255,0.75)',fontSize:'13px',marginTop:'3px'},
+    headerBtns: {display:'flex',alignItems:'center',gap:'10px'},
+    resetBtn: {display:'flex',alignItems:'center',gap:'6px',background:'rgba(255,255,255,0.15)',color:'#fff',border:'1px solid rgba(255,255,255,0.3)',borderRadius:'10px',padding:'8px 14px',fontSize:'12px',cursor:'pointer',backdropFilter:'blur(4px)'},
+    uploadBtn: {display:'flex',alignItems:'center',gap:'8px',background:'#fff',color:'#4361ee',border:'none',borderRadius:'10px',padding:'10px 20px',fontSize:'13px',fontWeight:'700',cursor:'pointer',boxShadow:'0 2px 12px rgba(0,0,0,0.1)'},
+    main: {padding:'2rem 2.5rem',maxWidth:'1400px',margin:'0 auto'},
+    sectionLabel: {fontSize:'11px',fontWeight:'800',color:'#9aa0b4',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'12px',display:'flex',alignItems:'center',gap:'8px'},
+    sectionLine: {flex:1,height:'1px',background:'#e2e8f0'},
+    grid: {display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:'1.25rem',marginBottom:'2.5rem'},
+    card: {background:'#fff',borderRadius:'16px',boxShadow:'0 2px 16px rgba(67,97,238,0.07)',border:'1px solid #eef0f8',overflow:'hidden'},
+    cardHeader: {padding:'14px 18px',borderBottom:'1px solid #f0f2fa',display:'flex',alignItems:'center',justifyContent:'space-between',background:'#fafbff'},
+    cardTitle: {fontSize:'14px',fontWeight:'700',color:'#1a1a2e'},
+    deleteBtn: {background:'none',border:'none',color:'#c0c8d8',cursor:'pointer',borderRadius:'8px',padding:'4px',display:'flex',transition:'color 0.2s'},
+    imgBox: {height:'120px',background:'#f7f8fc',display:'flex',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden',borderBottom:'1px solid #f0f2fa'},
+    resultBox: {padding:'14px 18px'},
+    resultLabel: {fontSize:'11px',fontWeight:'700',color:'#9aa0b4',letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:'10px'},
+    itemRow: {display:'flex',alignItems:'center',gap:'8px',padding:'6px 0',borderBottom:'1px solid #f7f8fc'},
+    tagMatched: {marginLeft:'auto',background:'#eef2ff',color:'#4361ee',fontSize:'11px',fontWeight:'700',padding:'2px 8px',borderRadius:'6px',whiteSpace:'nowrap',flexShrink:0},
+    tagOther: {marginLeft:'auto',background:'#f3f4f6',color:'#9ca3af',fontSize:'11px',padding:'2px 8px',borderRadius:'6px',whiteSpace:'nowrap',flexShrink:0},
+    emptyDrop: {border:'2px dashed #c7d2fe',borderRadius:'16px',padding:'3rem 2rem',textAlign:'center',background:'#fafbff',cursor:'pointer',transition:'all 0.2s'},
+    tableSection: {background:'#fff',borderRadius:'16px',boxShadow:'0 2px 16px rgba(67,97,238,0.07)',border:'1px solid #eef0f8',overflow:'hidden',marginBottom:'2.5rem'},
+    tableHeader: {padding:'1.25rem 1.5rem',borderBottom:'1px solid #f0f2fa',display:'flex',alignItems:'center',justifyContent:'space-between',background:'#fafbff'},
+    tableTitle: {fontSize:'16px',fontWeight:'800',color:'#1a1a2e'},
+    copyBtns: {display:'flex',alignItems:'center',gap:'8px'},
+    copyBtn: (active)=>({display:'flex',alignItems:'center',gap:'6px',background:active?'#10b981':'#fff',color:active?'#fff':'#4361ee',border:`1px solid ${active?'#10b981':'#c7d2fe'}`,borderRadius:'10px',padding:'8px 16px',fontSize:'12px',fontWeight:'700',cursor:'pointer',transition:'all 0.2s',whiteSpace:'nowrap'}),
+    table: {width:'100%',borderCollapse:'collapse',fontSize:'13px'},
+    th: {padding:'12px 16px',textAlign:'left',fontSize:'11px',fontWeight:'700',color:'#9aa0b4',letterSpacing:'0.06em',textTransform:'uppercase',background:'#f8f9ff',borderBottom:'1px solid #eef0f8'},
+    td: {padding:'12px 16px',borderBottom:'1px solid #f7f8fc',color:'#374151',verticalAlign:'middle'},
+  };
+
+  const showTable = textbooks.length>0 && textbooks.filter(t=>!t.error).every(tb=>!tb.isLoading) && analysisData.length>0;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans p-6">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <header className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-2">🔬 스마트 과학교구 분석기</h1>
-            <p className="mt-2 text-slate-500">이미지 캡처 후 <strong>Ctrl+V</strong>를 누르면 2022 개정 기준에 맞게 추출됩니다. (소모품 자동 제외)</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button onClick={onResetKey} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-red-400 transition-colors border border-slate-200 hover:border-red-200 px-3 py-2 rounded-lg">
-              <LogOut size={13} /> API 키 변경
-            </button>
-            <input type="file" multiple accept="image/*, application/pdf, .pdf, .hwp, .hwpx" className="hidden" ref={fileInputRef} onChange={handleFileUpload} />
-            <button onClick={() => fileInputRef.current.click()} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-sm whitespace-nowrap">
-              <Upload size={20} /> 파일 직접 선택
-            </button>
-          </div>
-        </header>
+    <div style={S.page}>
+      {/* 헤더 */}
+      <div style={S.header}>
+        <div>
+          <div style={S.headerTitle}><FlaskConical size={24} color="#fff"/> 스마트 과학교구 분석기</div>
+          <div style={S.headerSub}>이미지 캡처 후 Ctrl+V · 2022 개정 기준 자동 분석</div>
+        </div>
+        <div style={S.headerBtns}>
+          <button onClick={onResetKey} style={S.resetBtn}><LogOut size={13}/> API 키 변경</button>
+          <input type="file" multiple accept="image/*,application/pdf,.hwp,.hwpx" style={{display:'none'}} ref={fileInputRef} onChange={handleFileUpload}/>
+          <button onClick={()=>fileInputRef.current.click()} style={S.uploadBtn}><Upload size={16}/> 파일 선택</button>
+        </div>
+      </div>
 
-        {textbooks.length > 0 && (
-          <section>
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><ImageIcon className="text-blue-500" />분석 중인 교과서 현황</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {textbooks.map((tb) => (
-                <div key={tb.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full relative">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-lg text-slate-800">{tb.title}</h3>
-                    <button onClick={() => removeTextbook(tb.id)} className="text-slate-400 hover:text-red-500 transition-colors p-1"><Trash2 size={18} /></button>
-                  </div>
-                  <div className="w-full h-32 bg-slate-100 rounded-lg overflow-hidden mb-4 relative flex items-center justify-center border border-slate-200 border-dashed">
-                    {tb.isPdf ? (
-                      <div className="flex flex-col items-center justify-center text-rose-500 opacity-80"><FileText size={36} className="mb-2" /><span className="font-bold">PDF 문서</span></div>
-                    ) : (
-                      <img src={tb.imageUrl} alt={tb.title} className="w-full h-full object-contain bg-white opacity-90 p-2" />
-                    )}
-                    {tb.isLoading && (
-                      <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-10">
-                        <Loader2 className="animate-spin text-blue-600 mb-2" size={28} />
-                        <span className="text-sm font-bold text-blue-800">도구 텍스트 판독 중...</span>
-                      </div>
-                    )}
-                  </div>
-                  <div onClick={() => !tb.isLoading && !tb.error && handleCopyCardList(tb)} className={`flex-1 relative rounded-xl border transition-all ${tb.isLoading || tb.error ? 'border-transparent' : 'border-slate-100 hover:border-blue-300 hover:bg-blue-50/50 hover:shadow-sm cursor-pointer group p-3 -mx-3'}`}>
-                    <div className="flex justify-between items-center mb-2 border-b border-slate-100 pb-1.5">
-                      <h4 className="text-sm font-bold text-slate-600 group-hover:text-blue-700 transition-colors">AI 추출 결과</h4>
-                      {!tb.isLoading && !tb.error && tb.items.length > 0 && (
-                        <span className="text-xs text-blue-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"><Copy size={12} /> 가로 배열 복사</span>
-                      )}
+      <div style={S.main}>
+        {/* 섹션1: 파일 업로드 영역 */}
+        <div style={{...S.sectionLabel,marginTop:'1.5rem'}}>
+          <span>📁 교과서 이미지</span><div style={S.sectionLine}/>
+          <span style={{color:'#c7d2fe',fontWeight:'400',fontSize:'11px'}}>Ctrl+V 로 바로 붙여넣기 가능</span>
+        </div>
+
+        {textbooks.length === 0 ? (
+          <div style={S.emptyDrop} onClick={()=>fileInputRef.current.click()}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor='#4361ee';e.currentTarget.style.background='#eef2ff';}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor='#c7d2fe';e.currentTarget.style.background='#fafbff';}}>
+            <ClipboardPaste size={40} color="#a5b4fc" style={{marginBottom:'12px'}}/>
+            <div style={{fontSize:'18px',fontWeight:'800',color:'#3730a3',marginBottom:'6px'}}>화면 캡처 후 Ctrl + V</div>
+            <div style={{fontSize:'13px',color:'#7c83a0',lineHeight:'1.7'}}>준비물 텍스트 한 줄만 캡처해도 완벽하게 인식합니다<br/>클릭하여 파일을 직접 선택할 수도 있어요</div>
+          </div>
+        ) : (
+          <div style={S.grid}>
+            {textbooks.map(tb => (
+              <div key={tb.id} style={S.card}>
+                <div style={S.cardHeader}>
+                  <div style={S.cardTitle}>{tb.title}</div>
+                  <button onClick={()=>removeTextbook(tb.id)} style={S.deleteBtn}
+                    onMouseEnter={e=>e.currentTarget.style.color='#ef4444'}
+                    onMouseLeave={e=>e.currentTarget.style.color='#c0c8d8'}>
+                    <Trash2 size={16}/>
+                  </button>
+                </div>
+                <div style={S.imgBox}>
+                  {tb.isPdf ? (
+                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',color:'#f87171'}}>
+                      <FileText size={32}/><span style={{fontSize:'12px',fontWeight:'700',marginTop:'6px'}}>PDF 문서</span>
                     </div>
-                    {tb.isLoading ? (
-                      <div className="space-y-2 mt-2"><div className="h-4 bg-slate-200 rounded animate-pulse w-3/4"></div><div className="h-4 bg-slate-200 rounded animate-pulse w-1/2"></div></div>
-                    ) : tb.error ? (
-                      <div className="flex items-start gap-2 text-rose-600 text-sm bg-rose-50 p-2.5 rounded-lg border border-rose-100 leading-tight font-medium mt-2"><AlertCircle size={16} className="shrink-0 mt-0.5" /><span>{tb.error}</span></div>
-                    ) : (
-                      <ul className="text-sm space-y-2 overflow-y-auto max-h-44 pr-2 custom-scrollbar">
-                        {tb.items.map((item, idx) => (
-                          <li key={idx} className="flex items-center gap-2">
-                            {item.standard ? <CheckCircle2 size={16} className="text-emerald-500 shrink-0" /> : <HelpCircle size={16} className="text-slate-400 shrink-0" />}
-                            <span className="text-slate-700 font-medium">{item.original}</span>
-                            {item.standard ? (item.standard.name !== item.original && <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md ml-auto flex-shrink-0 font-bold border border-blue-100">→ {item.standard.name}</span>) : (<span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md ml-auto flex-shrink-0 border border-slate-200">기타 도구</span>)}
-                          </li>
-                        ))}
-                        {tb.items.length === 0 && <li className="text-slate-500 italic text-center py-4 bg-slate-50 rounded-lg">추출된 교구가 없습니다. (소모품 제외됨)</li>}
-                      </ul>
-                    )}
-                    {copiedCardId === tb.id && (
-                      <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-xl z-20">
-                        <span className="bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2 shadow-sm"><CheckCircle2 size={16} /> 가로 배열 복사됨!</span>
-                      </div>
+                  ) : (
+                    <img src={tb.imageUrl} alt={tb.title} style={{width:'100%',height:'100%',objectFit:'contain',padding:'8px',boxSizing:'border-box'}}/>
+                  )}
+                  {tb.isLoading && (
+                    <div style={{position:'absolute',inset:0,background:'rgba(255,255,255,0.9)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'8px'}}>
+                      <Loader2 size={28} color="#4361ee" style={{animation:'spin 1s linear infinite'}}/>
+                      <span style={{fontSize:'12px',fontWeight:'700',color:'#4361ee'}}>판독 중...</span>
+                    </div>
+                  )}
+                </div>
+                <div style={S.resultBox}>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
+                    <div style={S.resultLabel}>AI 추출 결과</div>
+                    {!tb.isLoading&&!tb.error&&tb.items.length>0&&(
+                      <button onClick={()=>handleCopyCardList(tb)}
+                        style={{display:'flex',alignItems:'center',gap:'4px',background:'none',border:'none',color:'#a5b4fc',fontSize:'11px',cursor:'pointer',fontWeight:'700'}}>
+                        {copiedCardId===tb.id?<><CheckCircle2 size={12} color="#10b981"/><span style={{color:'#10b981'}}>복사됨!</span></>:<><Copy size={12}/> 목록 복사</>}
+                      </button>
                     )}
                   </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {textbooks.length > 0 && textbooks.filter((t) => !t.error).every((tb) => !tb.isLoading) && analysisData.length > 0 && (
-          <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-8">
-            <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-bold text-slate-800">📊 2022 개정 기준 통합 교구 분석표</h2>
-                <p className="text-sm text-slate-500 mt-1">업로드된 내용 중 기준표에 없는 항목은 <span className="text-slate-700 font-medium bg-slate-100 px-1 rounded">기타 (기준표 외)</span>로 표 하단에 모아서 표시됩니다.</p>
-              </div>
-              <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl">
-                <button onClick={() => copyToHWP(true)} className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-bold transition-all text-sm whitespace-nowrap ${copyState === 'copiedWithHeader' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-sm'}`}>
-                  {copyState === 'copiedWithHeader' ? <CheckCircle2 size={16} /> : <Copy size={16} />}
-                  {copyState === 'copiedWithHeader' ? '헤더 포함 복사완료' : '헤더 포함 복사'}
-                </button>
-                <div className="w-px h-6 bg-slate-300 mx-1"></div>
-                <button onClick={() => copyToHWP(false)} className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-bold transition-all text-sm whitespace-nowrap ${copyState === 'copiedDataOnly' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-transparent text-slate-600 hover:bg-slate-200/50'}`}>
-                  {copyState === 'copiedDataOnly' ? <CheckCircle2 size={16} /> : <Copy size={16} />}
-                  {copyState === 'copiedDataOnly' ? '데이터만 복사완료' : '데이터만 복사'}
-                </button>
-              </div>
-            </div>
-            {copyState !== 'idle' && (
-              <div className="bg-emerald-50 px-6 py-4 border-b border-emerald-100 flex items-start gap-3">
-                <CheckCircle2 className="text-emerald-500 mt-0.5 shrink-0" size={20} />
-                <div className="text-sm text-emerald-800 leading-relaxed">
-                  <strong>클립보드에 표 데이터가 완벽하게 복사되었습니다!</strong><br />
-                  한글 문서에서 <code>Ctrl+V</code>를 누르시면 <strong>각 항목이 독립된 칸(셀)에 정확히 나뉘어 들어갑니다.</strong><br />
-                  <span className="text-emerald-600">(기존 표에 덮어쓰시려면 표 전체를 <code>F5</code>로 블록 지정 후 붙여넣으세요)</span>
+                  {tb.isLoading ? (
+                    <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                      {[75,55,65].map((w,i)=><div key={i} style={{height:'14px',background:'#f0f2fa',borderRadius:'6px',width:`${w}%`,animation:'pulse 1.5s ease-in-out infinite'}}/>)}
+                    </div>
+                  ) : tb.error ? (
+                    <div style={{display:'flex',alignItems:'flex-start',gap:'8px',background:'#fef2f2',padding:'10px 12px',borderRadius:'10px',color:'#ef4444',fontSize:'12px',fontWeight:'600'}}>
+                      <AlertCircle size={14} style={{flexShrink:0,marginTop:'1px'}}/>{tb.error}
+                    </div>
+                  ) : (
+                    <div style={{maxHeight:'180px',overflowY:'auto'}}>
+                      {tb.items.map((item,idx)=>(
+                        <div key={idx} style={S.itemRow}>
+                          {item.standard ? <CheckCircle2 size={15} color="#10b981" style={{flexShrink:0}}/> : <HelpCircle size={15} color="#d1d5db" style={{flexShrink:0}}/>}
+                          <span style={{fontSize:'13px',color:'#374151',fontWeight:'500'}}>{item.original}</span>
+                          {item.standard&&item.standard.name!==item.original && <span style={S.tagMatched}>→ {item.standard.name}</span>}
+                          {!item.standard && <span style={S.tagOther}>기타</span>}
+                        </div>
+                      ))}
+                      {tb.items.length===0&&<div style={{color:'#9ca3af',fontSize:'12px',textAlign:'center',padding:'1rem',fontStyle:'italic'}}>추출된 교구가 없습니다</div>}
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-600">
-                <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold w-36">영역</th>
-                    <th className="px-6 py-4 font-semibold w-48">교구 종목</th>
-                    <th className="px-6 py-4 font-semibold">규격</th>
-                    <th className="px-6 py-4 font-semibold w-28 whitespace-nowrap">소요 기준</th>
-                    <th className="px-6 py-4 font-semibold w-28 text-center">분류</th>
-                    <th className="px-6 py-4 font-semibold w-48">비고</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {analysisData.map((row, idx) => {
-                    const isOther = row.category === '기타 (기준표 외)';
-                    return (
-                      <tr key={idx} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors ${isOther ? 'bg-slate-50/30' : 'bg-white'}`}>
-                        <td className="px-6 py-4 whitespace-nowrap font-medium text-slate-700">{isOther ? <span className="text-slate-400">기타 (기준 외)</span> : row.category.replace('공통-', '')}</td>
-                        <td className={`px-6 py-4 font-bold ${isOther ? 'text-slate-600' : 'text-slate-800'}`}>{row.name}</td>
-                        <td className="px-6 py-4 text-slate-500">{row.spec}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-slate-500">{row.requirement}</td>
-                        <td className="px-6 py-4 text-center">
-                          {isOther ? <span className="text-slate-400">-</span> : <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${row.type === '필수' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>{row.type}</span>}
-                        </td>
-                        <td className="px-6 py-4"><span className={`font-medium ${row.remarks === '공통' ? 'text-blue-600' : 'text-slate-500'}`}>{row.remarks}</span></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            ))}
+            {/* 추가 업로드 카드 */}
+            <div onClick={()=>fileInputRef.current.click()}
+              style={{...S.card,border:'2px dashed #c7d2fe',boxShadow:'none',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'10px',padding:'2rem',cursor:'pointer',background:'#fafbff',minHeight:'200px'}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor='#4361ee';e.currentTarget.style.background='#eef2ff';}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor='#c7d2fe';e.currentTarget.style.background='#fafbff';}}>
+              <Upload size={28} color="#a5b4fc"/>
+              <span style={{fontSize:'13px',color:'#7c83a0',fontWeight:'600'}}>교과서 추가</span>
             </div>
-          </section>
-        )}
-
-        {textbooks.length === 0 && (
-          <div className="text-center py-24 px-6 border-2 border-dashed border-slate-300 rounded-3xl bg-slate-50/80 transition-all hover:bg-slate-100/50 cursor-pointer" onClick={() => fileInputRef.current.click()}>
-            <div className="bg-white w-24 h-24 rounded-full flex flex-col items-center justify-center mx-auto mb-6 shadow-sm border border-slate-100">
-              <ClipboardPaste className="text-blue-600 mb-1" size={32} />
-            </div>
-            <h3 className="text-2xl font-bold text-slate-800 mb-3">화면 캡처 후 Ctrl + V</h3>
-            <p className="text-slate-500 max-w-lg mx-auto text-base">준비물 텍스트 한 줄만 캡처해도 완벽하게 인식합니다.<br />화면 아무 곳에서나 <strong>Ctrl+V</strong>를 눌러 분석을 시작하세요.</p>
           </div>
+        )}
+
+        {/* 섹션2: 분석표 */}
+        {showTable && (
+          <>
+            <div style={S.sectionLabel}>
+              <span>📊 통합 교구 분석표</span><div style={S.sectionLine}/>
+              <span style={{color:'#c7d2fe',fontWeight:'400',fontSize:'11px'}}>2022 개정 기준</span>
+            </div>
+            <div style={S.tableSection}>
+              <div style={S.tableHeader}>
+                <div>
+                  <div style={S.tableTitle}>통합 교구 분석표</div>
+                  <div style={{fontSize:'12px',color:'#9aa0b4',marginTop:'3px'}}>기준표 외 항목은 하단에 별도 표시됩니다</div>
+                </div>
+                <div style={S.copyBtns}>
+                  <button onClick={()=>copyToHWP(true)} style={S.copyBtn(copyState==='copiedWithHeader')}>
+                    {copyState==='copiedWithHeader'?<CheckCircle2 size={14}/>:<Copy size={14}/>}
+                    {copyState==='copiedWithHeader'?'복사완료':'헤더 포함 복사'}
+                  </button>
+                  <button onClick={()=>copyToHWP(false)} style={S.copyBtn(copyState==='copiedDataOnly')}>
+                    {copyState==='copiedDataOnly'?<CheckCircle2 size={14}/>:<Copy size={14}/>}
+                    {copyState==='copiedDataOnly'?'복사완료':'데이터만 복사'}
+                  </button>
+                </div>
+              </div>
+              {copyState!=='idle'&&(
+                <div style={{background:'#f0fdf4',padding:'12px 20px',borderBottom:'1px solid #d1fae5',display:'flex',alignItems:'center',gap:'8px',fontSize:'13px',color:'#065f46'}}>
+                  <CheckCircle2 size={16} color="#10b981"/>
+                  <strong>복사 완료!</strong> 한글 문서에서 Ctrl+V로 붙여넣으시면 됩니다.
+                </div>
+              )}
+              <div style={{overflowX:'auto'}}>
+                <table style={S.table}>
+                  <thead>
+                    <tr>{['영역','교구 종목','규격','소요 기준','분류','비고'].map(h=><th key={h} style={S.th}>{h}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {analysisData.map((row,idx)=>{
+                      const isOther = row.category==='기타 (기준표 외)';
+                      return (
+                        <tr key={idx} style={{background:idx%2===0?'#fff':'#fafbff'}}>
+                          <td style={{...S.td,color:isOther?'#9ca3af':'#6366f1',fontWeight:'600',fontSize:'12px'}}>{isOther?'기타':row.category.replace('공통-','')}</td>
+                          <td style={{...S.td,fontWeight:'700',color:isOther?'#6b7280':'#1a1a2e'}}>{row.name}</td>
+                          <td style={{...S.td,color:'#6b7280'}}>{row.spec}</td>
+                          <td style={{...S.td,color:'#6b7280',whiteSpace:'nowrap'}}>{row.requirement}</td>
+                          <td style={{...S.td,textAlign:'center'}}>
+                            {!isOther&&<span style={{padding:'3px 10px',borderRadius:'20px',fontSize:'11px',fontWeight:'700',background:row.type==='필수'?'#fef2f2':'#fffbeb',color:row.type==='필수'?'#dc2626':'#d97706'}}>{row.type}</span>}
+                            {isOther&&<span style={{color:'#d1d5db'}}>-</span>}
+                          </td>
+                          <td style={{...S.td,fontWeight:row.remarks==='공통'?'700':'400',color:row.remarks==='공통'?'#4361ee':'#6b7280'}}>{row.remarks}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         )}
       </div>
-      <style dangerouslySetInnerHTML={{__html: `
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
-      `}} />
+
+      <style>{`
+        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        ::-webkit-scrollbar{width:5px;height:5px}
+        ::-webkit-scrollbar-track{background:#f1f5f9;border-radius:10px}
+        ::-webkit-scrollbar-thumb{background:#c7d2fe;border-radius:10px}
+      `}</style>
     </div>
   );
 }
 
 export default function App() {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
-  const handleResetKey = () => { localStorage.removeItem('gemini_api_key'); setApiKey(''); };
-  if (!apiKey) return <ApiKeyScreen onSave={setApiKey} />;
-  return <MainApp apiKey={apiKey} onResetKey={handleResetKey} />;
+  const [apiKey, setApiKey] = useState(()=>localStorage.getItem('gemini_api_key')||'');
+  const handleResetKey = ()=>{ localStorage.removeItem('gemini_api_key'); setApiKey(''); };
+  if (!apiKey) return <ApiKeyScreen onSave={setApiKey}/>;
+  return <MainApp apiKey={apiKey} onResetKey={handleResetKey}/>;
 }
