@@ -131,7 +131,7 @@ function MainApp({ apiKey, onResetKey }) {
   }, []);
 
   const extractEquipmentFromImage = useCallback(async (base64Data, mimeType) => {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
     const promptText = `
     당신은 텍스트 판독 및 과학교구 추출 전문가입니다.
     업로드된 이미지는 교과서 실험의 '준비물' 텍스트 부분만 아주 얇게 잘라낸 캡처 조각이거나 전체 페이지입니다.
