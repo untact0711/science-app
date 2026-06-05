@@ -43,8 +43,6 @@ function ApiKeyScreen({ onSave }) {
   const [error, setError] = useState('');
   const handleSave = () => {
     const trimmed = inputKey.trim();
-    if (!trimmed) { setError('API 키를 입력해주세요.'); return; }
-    if (!trimmed.startsWith('AIza')) { setError('올바른 형식이 아닙니다. (AIza 로 시작해야 합니다)'); return; }
     localStorage.setItem('gemini_api_key', trimmed);
     onSave(trimmed);
   };
