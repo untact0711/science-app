@@ -62,7 +62,7 @@ const STANDARD_EQUIPMENT = [
   { category: "공통-측정교구", name: "알코올 온도계", spec: "온도 범위 약 -20~110 ℃", requirement: "4학생당 1", type: "필수", keywords: ["알코올 온도계", "알코올온도계", "온도계", "유리 온도계"] },
   { category: "공통-측정교구", name: "열화상 카메라", spec: "온도 범위 약 -25~550 ℃", requirement: "4학생당 1", type: "필수", keywords: ["열화상 카메라", "열화상카메라", "적외선 카메라"] },
   { category: "공통-측정교구", name: "자1", spec: "1 m", requirement: "4학생당 1", type: "필수", keywords: ["1m 자", "1 m 자", "미터 자", "막대자", "1미터 자"] },
-  { category: "공통-측정교구", name: "자2", spec: "30 cm", requirement: "2학생당 1", type: "필수", keywords: ["30cm 자", "30 cm 자", "자", "플라스틱 자", "삼각자"] },
+  { category: "공통-측정교구", name: "자2", spec: "30 cm", requirement: "2학생당 1", type: "필수", keywords: ["30cm 자", "30 cm 자", "플라스틱 자", "삼각자"] },
   { category: "공통-측정교구", name: "전자저울", spec: "칭량 100∼500 g, 감량 0.1 g", requirement: "4학생당 1", type: "필수", keywords: ["전자저울", "저울", "전자 저울", "디지털 저울"] },
   { category: "공통-측정교구", name: "초시계", spec: "디지털, 1/100초", requirement: "4학생당 1", type: "필수", keywords: ["초시계", "스톱워치"] },
   { category: "공통-측정교구", name: "피펫 필러", spec: "슬라이딩식 또는 스포이트식", requirement: "4학생당 1", type: "필수", keywords: ["피펫 필러", "피펫필러", "피펫 빨개", "안전 피펫"] },
@@ -319,7 +319,9 @@ export default function App() {
   };
 
   // 자석(소모품), 자석젓개/자석교반기(기준표 외) 제외
-  const MAGNET_EXCLUDE = ['자석젓개', '자석 젓개', '자석교반기', '자석 교반기', '자석'];
+  const MAGNET_EXCLUDE = ['자석젓개', '자석 젓개', '자석교반기', '자석 교반기', '자석',
+    '전선집게', '전선 집게', '집게달린전선', '집게 달린 전선', 'L자전극', 'L 자 전극', 'L자 전극',
+    '금속집게', '금속 집게', '집게'];
 
   const mapToStandardDb = (extractedItems) => {
     const filtered = extractedItems.filter((item) => {
@@ -344,6 +346,8 @@ export default function App() {
             if (normalizedKw === '장갑' && normalizedItem.includes('화학')) return false;
             if (normalizedKw === '집게' && normalizedItem.includes('시험관')) return false;
             if (normalizedKw === '집게' && normalizedItem.includes('증발')) return false;
+            if (normalizedKw === '집게' && normalizedItem.includes('전선')) return false;
+            if (normalizedKw === '집게' && normalizedItem.includes('금속')) return false;
             if (normalizedKw === '수조' && normalizedItem.includes('사각')) return false;
             if (normalizedKw === '수조' && normalizedItem.includes('원형')) return false;
             if (normalizedKw === '마스크' && normalizedItem.includes('방독')) return false;
