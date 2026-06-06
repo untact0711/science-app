@@ -318,8 +318,16 @@ export default function App() {
     }
   };
 
+  // 자석(소모품), 자석젓개/자석교반기(기준표 외) 제외
+  const MAGNET_EXCLUDE = ['자석젓개', '자석 젓개', '자석교반기', '자석 교반기', '자석'];
+
   const mapToStandardDb = (extractedItems) => {
-    const mapped = extractedItems.map((item) => {
+    const filtered = extractedItems.filter((item) => {
+      const n = item.replace(/\s+/g, '');
+      return !MAGNET_EXCLUDE.some((kw) => n === kw.replace(/\s+/g, ''));
+    });
+
+    const mapped = filtered.map((item) => {
       const normalizedItem = item.replace(/\s+/g, '');
       let found = null;
 
