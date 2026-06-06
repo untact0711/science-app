@@ -61,7 +61,7 @@ const STANDARD_EQUIPMENT = [
   { category: "공통-측정교구", name: "센서(이산화 탄소)", spec: "0~5,000 ppm, 유선 또는 무선", requirement: "4학생당 1", type: "필수", keywords: ["센서 이산화탄소", "이산화탄소 센서", "이산화탄소센서", "CO2 센서", "CO2센서"] },
   { category: "공통-측정교구", name: "알코올 온도계", spec: "온도 범위 약 -20~110 ℃", requirement: "4학생당 1", type: "필수", keywords: ["알코올 온도계", "알코올온도계", "온도계", "유리 온도계"] },
   { category: "공통-측정교구", name: "열화상 카메라", spec: "온도 범위 약 -25~550 ℃", requirement: "4학생당 1", type: "필수", keywords: ["열화상 카메라", "열화상카메라", "적외선 카메라"] },
-  { category: "공통-측정교구", name: "자1", spec: "1 m", requirement: "4학생당 1", type: "필수", keywords: ["1m 자", "1 m 자", "미터 자", "막대자", "줄자", "1미터 자"] },
+  { category: "공통-측정교구", name: "자1", spec: "1 m", requirement: "4학생당 1", type: "필수", keywords: ["1m 자", "1 m 자", "미터 자", "막대자", "1미터 자"] },
   { category: "공통-측정교구", name: "자2", spec: "30 cm", requirement: "2학생당 1", type: "필수", keywords: ["30cm 자", "30 cm 자", "자", "플라스틱 자", "삼각자"] },
   { category: "공통-측정교구", name: "전자저울", spec: "칭량 100∼500 g, 감량 0.1 g", requirement: "4학생당 1", type: "필수", keywords: ["전자저울", "저울", "전자 저울", "디지털 저울"] },
   { category: "공통-측정교구", name: "초시계", spec: "디지털, 1/100초", requirement: "4학생당 1", type: "필수", keywords: ["초시계", "스톱워치"] },
@@ -349,6 +349,7 @@ export default function App() {
             if (normalizedKw === '마스크' && normalizedItem.includes('방독')) return false;
             if (normalizedKw === '보안경' && normalizedItem.includes('레이저')) return false;
             if (normalizedKw === '보안경' && normalizedItem.includes('고글')) return false;
+            if (normalizedKw === '자' && normalizedItem.includes('자석')) return false;
             return normalizedItem.includes(normalizedKw);
           })
         );
