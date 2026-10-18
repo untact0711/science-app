@@ -443,7 +443,7 @@ const STANDARD_EQUIPMENT = [
   { category:"공통-일반교구", name:"전기포트", spec:"AC 220 V, 2 L 정도", requirement:"실험실당 2", type:"필수", keywords:["전기포트","전기 포트","전기 주전자"] },
   { category:"공통-일반교구", name:"전열기(또는 핫플레이트)", spec:"AC, 500∼1,000 W", requirement:"4학생당 1", type:"필수", keywords:["전열기","핫플레이트","가열 장치","가열장치","히터","전기 가열기"] },
   { category:"공통-일반교구", name:"점적병1", spec:"백색 2종(50 mL, 100 mL) 1조", requirement:"4학생당 1", type:"필수", keywords:["점적병","점적 병","시약병 점적","드롭퍼 병"] },
-  { category:"공통-일반교구", name:"점적병2", spec:"갈색 2종(50 mL, 100 mL) 1조", requirement:"4학생당 1", type:"필수", keywords:["갈색 점적병","갈색점적병","갈색 시약병"] },
+  { category:"공통-일반교구", name:"점적병2", spec:"갈색 2종(50 mL, 100 mL) 1조", requirement:"4학생당 1", type:"필수", keywords:["갈색 점적병","갈색점적병"] },
   { category:"공통-일반교구", name:"점화기", spec:"압전식", requirement:"4학생당 1", type:"필수", keywords:["점화기","라이터","가스 점화기","압전식 점화기"] },
   { category:"공통-일반교구", name:"주사기", spec:"각종(20∼50mL), 플라스틱", requirement:"4학생당 1", type:"필수", keywords:["주사기","플라스틱 주사기"] },
   { category:"공통-일반교구", name:"증발 접시", spec:"ø60 mm 이상", requirement:"4학생당 1", type:"필수", keywords:["증발 접시","증발접시"] },
@@ -467,8 +467,8 @@ const STANDARD_EQUIPMENT = [
   { category:"공통-측정교구", name:"센서(이산화 탄소)", spec:"0~5,000 ppm, 유선 또는 무선", requirement:"4학생당 1", type:"필수", keywords:["센서 이산화탄소","이산화탄소 센서","이산화탄소센서","CO2 센서","CO2센서"] },
   { category:"공통-측정교구", name:"알코올 온도계", spec:"온도 범위 약 -20~110 ℃", requirement:"4학생당 1", type:"필수", keywords:["알코올 온도계","알코올온도계","온도계","유리 온도계"] },
   { category:"공통-측정교구", name:"열화상 카메라", spec:"온도 범위 약 -25~550 ℃", requirement:"4학생당 1", type:"필수", keywords:["열화상 카메라","열화상카메라","적외선 카메라"] },
-  { category:"공통-측정교구", name:"자1", spec:"1 m", requirement:"4학생당 1", type:"필수", keywords:["1m 자","1 m 자","미터 자","막대자","줄자","1미터 자"] },
-  { category:"공통-측정교구", name:"자2", spec:"30 cm", requirement:"2학생당 1", type:"필수", keywords:["30cm 자","30 cm 자","자","플라스틱 자","삼각자"] },
+  { category:"공통-측정교구", name:"자1", spec:"1 m", requirement:"4학생당 1", type:"필수", keywords:["1m 자","1 m 자","미터 자","막대자","1미터 자"] },
+  { category:"공통-측정교구", name:"자2", spec:"30 cm", requirement:"2학생당 1", type:"필수", keywords:["30cm 자","30 cm 자","자","플라스틱 자"] },
   { category:"공통-측정교구", name:"전자저울", spec:"칭량 100∼500 g, 감량 0.1 g", requirement:"4학생당 1", type:"필수", keywords:["전자저울","저울","전자 저울","디지털 저울"] },
   { category:"공통-측정교구", name:"초시계", spec:"디지털, 1/100초", requirement:"4학생당 1", type:"필수", keywords:["초시계","스톱워치"] },
   { category:"공통-측정교구", name:"피펫 필러", spec:"슬라이딩식 또는 스포이트식", requirement:"4학생당 1", type:"필수", keywords:["피펫 필러","피펫필러","피펫 빨개","안전 피펫"] },
@@ -681,15 +681,48 @@ function updateTb(id, patch) {
 // 그때는 아래 값을 현재 제공되는 모델명으로 교체하세요.
 const GEMINI_MODEL = 'gemini-3.5-flash';
 
+// 기준표 전체를 프롬프트에 넣기 위한 텍스트 (이름 | 규격)
+function buildEquipmentListText() {
+  return STANDARD_EQUIPMENT.map(s => `${s.name} | ${s.spec}`).join('\n');
+}
+
 async function extractEquipmentFromImage(base64Data, mimeType) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
-  const promptText = `당신은 텍스트 판독 및 과학교구 추출 전문가입니다.\n업로드된 이미지는 교과서 실험의 '준비물' 텍스트 부분만 아주 얇게 잘라낸 캡처 조각이거나 전체 페이지입니다.\n\n[핵심 임무]\n1. 2022 개정 과학교구 설비 기준표에 해당하는 정식 교구(비커, 온도계, 스마트 기기 등)와 일반 도구(가위, 자, 테이프 등)만 추출하세요.\n2. [강력 제외] 물, 에탄올, 시약 등의 '액체/화학 물질'과 거름종이, 시약포지, 약포지 등 1회성 '소모품류'는 목록에서 절대 추출하지 마세요.\n3. [암석·광물 표본 주의] '전원장치'는 반드시 '직류전원장치'로 추출하세요. '암석 표본'이라고 뭉뚱그리지 말고, 이미지에 보이는 대로 '화성암 표본', '퇴적암 표본', '변성암 표본'을 각각 개별 항목으로 추출하세요. '광물 표본'도 별도로 추출하세요.\n\n결과는 반드시 제공된 JSON 스키마에 따라 'equipment' 배열로 응답하세요.`;
+  const promptText = [
+    "당신은 중학교 과학 교과서의 '준비물' 목록을 읽고, 2022 개정 과학교구 설비 기준표에 연결하는 전문가입니다.",
+    "이미지는 준비물 부분만 얇게 잘라낸 조각이거나 전체 페이지입니다.",
+    "",
+    "[1단계 — 추출]",
+    "실험에 쓰이는 기구·도구의 이름을 이미지에 적힌 그대로 뽑아 original 에 적습니다.",
+    "- 물, 에탄올, 시약 등 액체·화학 물질은 뽑지 마세요.",
+    "- 거름종이, 시약포지, 약포지 등 1회성 소모품은 뽑지 마세요.",
+    "- 암석 표본이 화성암·퇴적암·변성암으로 나뉘어 보이면 각각 개별 항목으로 뽑으세요.",
+    "",
+    "[2단계 — 매핑]",
+    "뽑은 항목이 아래 기준표의 어느 교구인지 판단해 standard 에 적습니다.",
+    "- standard 는 아래 목록에 있는 이름을 글자 그대로 적으세요. 목록에 없는 이름을 지어내면 안 됩니다.",
+    '- 해당하는 교구가 없으면 standard 를 빈 문자열("")로 두세요.',
+    "- 이름이 비슷해도 물건이 다르면 연결하지 마세요.",
+    '  예) 삼각자와 줄자는 자1(1m)·자2(30cm)와 다른 물건이므로 "" 입니다.',
+    '  예) Y자관은 자가 아니고, 고무 링은 스탠드용 링이 아닙니다.',
+    "- 규격을 참고해 구분하세요. 1m 자는 자1, 30cm 자는 자2 입니다.",
+    "- 단위 없이 '자'라고만 적혀 있으면 자2 로 연결하세요.",
+    "- '전원장치'는 '직류전원장치'로 연결하세요.",
+    "- '집게 달린 전선'은 '연결용 도선'입니다.",
+    "",
+    "[기준표 목록 — 이름 | 규격]",
+    buildEquipmentListText()
+  ].join("\n");
 
   const payload = {
     contents: [{ role:'user', parts:[{ text:promptText },{ inlineData:{ mimeType, data:base64Data }}] }],
     generationConfig: {
       responseMimeType:'application/json',
-      responseSchema:{ type:'OBJECT', properties:{ equipment:{ type:'ARRAY', items:{ type:'STRING' }}}, required:['equipment'] }
+      responseSchema:{ type:'OBJECT', properties:{ equipment:{ type:'ARRAY', items:{
+        type:'OBJECT',
+        properties:{ original:{ type:'STRING' }, standard:{ type:'STRING' } },
+        required:['original','standard']
+      }}}, required:['equipment'] }
     }
   };
 
@@ -712,10 +745,15 @@ async function extractEquipmentFromImage(base64Data, mimeType) {
       if (text) {
         try {
           const parsed = JSON.parse(text);
-          return (parsed.equipment||[]).filter(item => {
-            const n = item.replace(/\s+/g,'');
-            return !EXCLUDED_KEYWORDS.some(kw => n.includes(kw.replace(/\s+/g,'')));
-          });
+          return (parsed.equipment||[])
+            .map(e => (typeof e === 'string')
+              ? { original:e, aiStandard:'' }
+              : { original:String((e&&e.original)||''), aiStandard:String((e&&e.standard)||'') })
+            .filter(e => e.original)
+            .filter(e => {
+              const n = e.original.replace(/\s+/g,'');
+              return !EXCLUDED_KEYWORDS.some(kw => n.includes(kw.replace(/\s+/g,'')));
+            });
         } catch { return []; }
       }
       return [];
@@ -728,9 +766,14 @@ async function extractEquipmentFromImage(base64Data, mimeType) {
 
 // ── MAPPING ───────────────────────────────────────────────────────────────────
 // 자석(소모품), 자석젓개/자석교반기 등 기준표 외 항목 제외
+// 주의: '집게 달린 전선'은 기준표의 '연결용 도선'이므로 제외하지 않습니다.
+//       집게 단품(전선집게·금속집게)만 제외합니다.
 const MAGNET_EXCLUDE = ['자석젓개','자석 젓개','자석교반기','자석 교반기','자석',
-  '전선집게','전선 집게','집게달린전선','집게 달린 전선','L자전극','L 자 전극','L자 전극',
+  '전선집게','전선 집게','L자전극','L 자 전극','L자 전극',
   '금속집게','금속 집게'];
+
+// '자'로 끝나지만 기준표의 자(척도)가 아닌 항목 — 보정 규칙에서 제외
+const RULER_EXCLUDE = ['줄자','삼각자','상자','종이상자','투명상자','의자','모자','숫자','전자','분자','원자','입자','과자','감자'];
 
 // "암석표본"처럼 뭉뚱그린 표현 → 화성암/퇴적암/변성암 세 항목으로 확장
 const ROCK_EXPAND_KEYWORDS = ['암석표본','암석표본','암석시료','암석샘플'];
@@ -743,6 +786,10 @@ function matchOneItem(n) {
     if (!found) {
       found = STANDARD_EQUIPMENT.find(std => std.keywords.some(kw => {
         const nk = kw.replace(/\s+/g,'');
+        // 한 글자 키워드('자','링','솔')는 부분 일치 금지.
+        // 'Y자관'→자2, '고무 링'→링 처럼 엉뚱하게 잡히는 것을 막습니다.
+        // (정확히 일치하는 경우는 위 1단계에서 이미 처리됩니다)
+        if (nk.length <= 1) return false;
         if (nk==='장갑' && n.includes('내열')) return false;
         if (nk==='장갑' && n.includes('고무')) return false;
         if (nk==='장갑' && n.includes('화학')) return false;
@@ -759,28 +806,69 @@ function matchOneItem(n) {
         return n.includes(nk);
       }));
     }
+    // 3. 단위 없는 '자' 보정
+    //    '자', '나무 자', '플라스틱 자'처럼 30cm/1m 표기가 없어도 자(척도)로 간주합니다.
+    //    단, 줄자·삼각자는 기준표 외 교구이므로 제외하고, '상자·숫자' 같은 일반 단어도 막습니다.
+    if (!found && /자$/.test(n) && !RULER_EXCLUDE.includes(n)) {
+      found = STANDARD_EQUIPMENT.find(s => s.name === '자2') || null;
+    }
     return found || null;
 }
 
+// AI가 지정한 표준 교구명이 실제 기준표에 있는지 대조합니다.
+// 없는 이름(지어낸 이름)이면 null 을 돌려주어 키워드 표로 넘깁니다.
+function verifyAiStandard(aiName) {
+  if (!aiName) return null;
+  const exact = STANDARD_EQUIPMENT.find(s => s.name === aiName);
+  if (exact) return exact;
+  const a = aiName.replace(/\s+/g,'');
+  return STANDARD_EQUIPMENT.find(s => s.name.replace(/\s+/g,'') === a) || null;
+}
+
+// 2중 구조: ① AI 매핑을 DB로 검증 → ② 어긋나면 키워드 표가 받음
+// 입력은 {original, aiStandard} 객체 배열이며, 문자열 배열도 그대로 받습니다.
 function mapToStandardDb(extractedItems) {
+  const normalized = extractedItems.map(it =>
+    (typeof it === 'string') ? { original: it, aiStandard: '' } : it);
+
   // 기준표 외 항목(자석, 자석젓개, L자전극 등) 사전 제외
-  const filtered = extractedItems.filter(item => {
-    const n = item.replace(/\s+/g,'');
+  const filtered = normalized.filter(it => {
+    const n = it.original.replace(/\s+/g,'');
     return !MAGNET_EXCLUDE.some(kw => n === kw.replace(/\s+/g,''));
   });
 
   const pairs = [];
-  filtered.forEach(item => {
+  filtered.forEach(it => {
+    const item = it.original;
     const n = item.replace(/\s+/g,'');
+
     // 암석표본 뭉뚱그린 표현 → 세 암석 종류 모두 확장
     if (ROCK_EXPAND_KEYWORDS.some(kw => n===kw || n.includes(kw))) {
       ROCK_TYPES.forEach(rname => {
         const std = STANDARD_EQUIPMENT.find(s => s.name===rname);
-        if (std) pairs.push({ original:item, standard:std });
+        if (std) pairs.push({ original:item, standard:std, via:'rock' });
       });
-    } else {
-      pairs.push({ original:item, standard:matchOneItem(n) });
+      return;
     }
+
+    // ① AI가 지정한 표준명을 DB와 대조
+    let std = verifyAiStandard(it.aiStandard);
+    let via = 'ai';
+
+    if (!std) {
+      if (it.aiStandard) {
+        // AI가 목록에 없는 이름을 적음 → 키워드 표가 받아줌
+        std = matchOneItem(n);
+        via = 'keyword-fallback';
+      } else {
+        // AI가 "해당 없음"으로 판단 → 그 판단을 존중하되,
+        // 키워드와 '정확히' 일치하는 경우만 구제합니다(부분 일치는 쓰지 않음).
+        std = STANDARD_EQUIPMENT.find(s =>
+          s.keywords.some(kw => n === kw.replace(/\s+/g,''))) || null;
+        via = std ? 'keyword-exact' : 'none';
+      }
+    }
+    pairs.push({ original:item, standard:std, via });
   });
   const unique = [], seen = new Set();
   const mapped = pairs;
