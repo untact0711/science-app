@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔬 스마트 과학교구 분석기</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --white: #ffffff;
+    --border: #e2e8f0;
+    --border-light: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --blue: #2563eb;
+    --blue-dark: #1d4ed8;
+    --blue-bg: #eff6ff;
+    --blue-light: #dbeafe;
+    --emerald: #10b981;
+    --emerald-bg: #ecfdf5;
+    --emerald-border: #a7f3d0;
+    --rose: #e11d48;
+    --rose-bg: #fff1f2;
+    --rose-border: #fecdd3;
+    --amber-bg: #fffbeb;
+    --amber-text: #92400e;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -1px rgba(0,0,0,.05);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  /* ── API KEY SCREEN ── */
+  #api-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  .api-card {
+    background: var(--white);
+    border-radius: 1.25rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+    padding: 2rem;
+    width: 100%;
+    max-width: 420px;
+  }
+  .api-card-header { display: flex; align-items: center; gap: .75rem; margin-bottom: .5rem; }
+  .api-icon { background: var(--blue-bg); padding: .625rem; border-radius: .75rem; display:flex; }
+  .api-icon svg { color: var(--blue); }
+  .api-card h1 { font-size: 1.4rem; font-weight: 800; }
+  .api-card p { font-size: .85rem; color: var(--text-secondary); margin: .75rem 0 1.5rem; line-height: 1.6; }
+  .field-label { display: block; font-size: .7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: .5rem; }
+  .api-input {
+    width: 100%; border: 1.5px solid var(--border); border-radius: .75rem;
+    padding: .75rem 1rem; font-family: monospace; font-size: .85rem;
+    outline: none; transition: border-color .15s, box-shadow .15s; margin-bottom: .25rem;
+  }
+  .api-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+  .error-msg { color: #ef4444; font-size: .75rem; display: flex; align-items: center; gap: .25rem; margin-bottom: .75rem; }
+  .mb-spacer { margin-bottom: .75rem; }
+  .btn-primary {
+    width: 100%; background: var(--blue); color: #fff;
+    border: none; border-radius: .75rem; padding: .8rem;
+    font-size: .9rem; font-weight: 600; cursor: pointer; transition: background .15s, transform .1s;
+  }
+  .btn-primary:hover { background: var(--blue-dark); }
+  .btn-primary:active { transform: scale(.99); }
+  .api-footer { font-size: .75rem; color: var(--text-muted); text-align: center; margin-top: 1.25rem; line-height: 1.6; }
+  .api-footer a { color: var(--blue); text-decoration: underline; text-underline-offset: 2px; }
+
+  /* ── MAIN APP ── */
+  #app-screen { display: none; padding: 1.5rem; }
+  .inner { max-width: 1152px; margin: 0 auto; }
+
+  /* Header */
+  .app-header {
+    background: var(--white); border-radius: 1.25rem;
+    padding: 2rem; box-shadow: var(--shadow); border: 1px solid var(--border-light);
+    display: flex; flex-wrap: wrap; align-items: center;
+    justify-content: space-between; gap: 1rem; margin-bottom: 2rem;
+  }
+  .app-header h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em; }
+  .app-header p { margin-top: .5rem; color: var(--text-secondary); font-size: .9rem; }
+  .header-btns { display: flex; align-items: center; gap: .75rem; }
+  .btn-reset {
+    display: flex; align-items: center; gap: .375rem;
+    font-size: .75rem; color: var(--text-muted); background: none;
+    border: 1px solid var(--border); border-radius: .5rem;
+    padding: .5rem .75rem; cursor: pointer; transition: color .15s, border-color .15s;
+  }
+  .btn-reset:hover { color: #ef4444; border-color: #fecdd3; }
+  .btn-upload {
+    display: flex; align-items: center; gap: .5rem;
+    background: var(--blue); color: #fff; border: none;
+    border-radius: .75rem; padding: .7rem 1.4rem;
+    font-size: .9rem; font-weight: 600; cursor: pointer; transition: background .15s;
+    white-space: nowrap;
+  }
+  .btn-upload:hover { background: var(--blue-dark); }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center; padding: 5rem 1.5rem;
+    border: 2px dashed #cbd5e1; border-radius: 1.5rem;
+    background: rgba(248,250,252,.8); cursor: pointer; transition: background .15s;
+  }
+  .empty-state:hover { background: rgba(241,245,249,.8); }
+  .empty-icon {
+    background: var(--white); width: 5rem; height: 5rem; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border-light);
+  }
+  .empty-state h3 { font-size: 1.4rem; font-weight: 800; margin-bottom: .75rem; }
+  .empty-state p { color: var(--text-secondary); font-size: .95rem; line-height: 1.6; max-width: 480px; margin: 0 auto; }
+
+  /* Textbook grid */
+  .section-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem; }
+  .textbook-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+  .tb-card {
+    background: var(--white); padding: 1.25rem; border-radius: 1.25rem;
+    box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; flex-direction: column;
+  }
+  .tb-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .tb-card-header h3 { font-weight: 700; font-size: 1.05rem; }
+  .btn-remove { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: .25rem; transition: color .15s; }
+  .btn-remove:hover { color: #ef4444; }
+  .tb-preview {
+    width: 100%; height: 8rem; background: var(--bg); border-radius: .5rem;
+    overflow: hidden; margin-bottom: 1rem; position: relative;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px dashed var(--border);
+  }
+  .tb-preview img { width: 100%; height: 100%; object-fit: contain; background: #fff; padding: .5rem; }
+  .pdf-badge { display: flex; flex-direction: column; align-items: center; color: #f43f5e; opacity: .8; }
+  .loading-overlay {
+    position: absolute; inset: 0; background: rgba(255,255,255,.85);
+    backdrop-filter: blur(4px); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; z-index: 10;
+  }
+  .spinner {
+    width: 1.75rem; height: 1.75rem; border: 3px solid var(--blue-light);
+    border-top-color: var(--blue); border-radius: 50%;
+    animation: spin .7s linear infinite; margin-bottom: .5rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-overlay span { font-size: .85rem; font-weight: 700; color: var(--blue); }
+
+  .tb-results {
+    flex: 1; border-radius: .75rem; border: 1px solid transparent;
+    transition: border-color .15s, background .15s;
+    padding: .75rem; margin: -.75rem; cursor: pointer;
+  }
+  .tb-results:not(.disabled):hover { border-color: var(--blue-light); background: rgba(239,246,255,.5); }
+  .tb-results.disabled { cursor: default; }
+  .tb-results-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: .5rem; padding-bottom: .375rem; border-bottom: 1px solid var(--border-light);
+  }
+  .tb-results-title { font-size: .85rem; font-weight: 700; color: var(--text-secondary); }
+  .copy-hint { font-size: .75rem; color: var(--blue); font-weight: 600; opacity: 0; transition: opacity .15s; display: flex; align-items: center; gap: .25rem; }
+  .tb-results:hover .copy-hint { opacity: 1; }
+  .item-list { list-style: none; font-size: .85rem; overflow-y: auto; max-height: 11rem; padding-right: .5rem; }
+  .item-list::-webkit-scrollbar { width: 4px; }
+  .item-list::-webkit-scrollbar-track { background: var(--bg); border-radius: 6px; }
+  .item-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+  .item-row { display: flex; align-items: center; gap: .5rem; padding: .25rem 0; }
+  .item-row .item-name { color: var(--text-primary); font-weight: 600; }
+  .badge {
+    font-size: .7rem; font-weight: 700; padding: .15rem .5rem;
+    border-radius: .375rem; margin-left: auto; flex-shrink: 0; white-space: nowrap;
+  }
+  .badge-mapped { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-light); }
+  .badge-other { background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); }
+  .empty-items { color: var(--text-muted); font-style: italic; text-align: center; padding: 1rem; background: var(--bg); border-radius: .5rem; font-size: .85rem; }
+  .error-box {
+    display: flex; align-items: flex-start; gap: .5rem; color: #be123c;
+    font-size: .85rem; background: var(--rose-bg); padding: .625rem;
+    border-radius: .5rem; border: 1px solid var(--rose-border); margin-top: .5rem; font-weight: 500; line-height: 1.4;
+  }
+
+  /* Copied overlay */
+  .copied-overlay {
+    position: absolute; inset: 0; background: rgba(255,255,255,.85);
+    backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center;
+    border-radius: .75rem; z-index: 20;
+  }
+  .copied-pill {
+    background: var(--emerald); color: #fff; padding: .375rem .75rem;
+    border-radius: .5rem; font-size: .85rem; font-weight: 700;
+    display: flex; align-items: center; gap: .5rem; box-shadow: var(--shadow);
+  }
+
+  /* Analysis table */
+  .table-section {
+    background: var(--white); border-radius: 1.25rem;
+    box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; margin-top: 2rem;
+  }
+  .table-header {
+    padding: 1.5rem; border-bottom: 1px solid var(--border-light);
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;
+  }
+  .table-header h2 { font-size: 1.2rem; font-weight: 800; }
+  .table-header p { font-size: .82rem; color: var(--text-secondary); margin-top: .25rem; }
+  .table-header .code-inline {
+    background: var(--bg); padding: .1rem .3rem; border-radius: .25rem;
+    font-family: monospace; font-size: .8rem; color: var(--text-primary);
+  }
+  .copy-btns {
+    display: flex; align-items: center; gap: .5rem;
+    background: var(--bg); padding: .375rem; border-radius: .75rem;
+  }
+  .btn-copy {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .625rem 1rem; border-radius: .5rem; font-size: .82rem;
+    font-weight: 700; cursor: pointer; transition: all .15s; white-space: nowrap; border: none;
+  }
+  .btn-copy-primary {
+    background: var(--white); color: var(--text-secondary);
+    border: 1px solid var(--border) !important; box-shadow: var(--shadow);
+  }
+  .btn-copy-primary.active { background: var(--emerald); color: #fff; border-color: var(--emerald) !important; }
+  .btn-copy-secondary { background: transparent; color: var(--text-secondary); }
+  .btn-copy-secondary.active { background: var(--emerald); color: #fff; }
+  .divider { width: 1px; height: 1.5rem; background: #cbd5e1; }
+  .copy-success-bar {
+    background: var(--emerald-bg); padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--emerald-border);
+    display: flex; align-items: flex-start; gap: .75rem;
+  }
+  .copy-success-bar p { font-size: .85rem; color: #065f46; line-height: 1.6; }
+  .copy-success-bar code { background: rgba(0,0,0,.06); padding: .1rem .3rem; border-radius: .25rem; font-family: monospace; }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; color: var(--text-secondary); }
+  thead { background: var(--bg); border-bottom: 1px solid var(--border); }
+  thead th { padding: .875rem 1.25rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); text-align: left; white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid var(--border-light); transition: background .1s; }
+  tbody tr:hover { background: rgba(248,250,252,.7); }
+  tbody tr.row-other { background: rgba(248,250,252,.4); }
+  td { padding: .875rem 1.25rem; }
+  td.cat { font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
+  td.cat .other-label { color: var(--text-muted); }
+  td.name { font-weight: 700; color: var(--text-primary); }
+  td.name.other-name { color: var(--text-secondary); }
+  td.spec { color: var(--text-muted); }
+  td.req { white-space: nowrap; }
+  td.type-cell { text-align: center; }
+  .type-badge {
+    display: inline-block; padding: .25rem .625rem; border-radius: 9999px;
+    font-size: .72rem; font-weight: 700;
+  }
+  .type-essential { background: #ffe4e6; color: #9f1239; }
+  .type-recommended { background: #fef3c7; color: var(--amber-text); }
+  .type-extended { background: #ede9fe; color: #5b21b6; }
+  td.remarks { font-weight: 500; }
+  td.remarks .common { color: var(--blue); }
+
+  svg { display: inline-block; flex-shrink: 0; }
+  .icon-check { color: var(--emerald); }
+  .icon-question { color: var(--text-muted); }
+  .icon-blue { color: var(--blue); }
+  .icon-red { color: #f43f5e; }
+</style>
+</head>
+<body>
+
+<!-- ── API KEY SCREEN ── -->
+<div id="api-screen">
+  <div class="api-card">
+    <div class="api-card-header">
+      <div class="api-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue)"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+      </div>
+      <h1>🔬 과학교구 분석기</h1>
+    </div>
+    <p>이 앱은 <strong>본인의 Gemini API 키</strong>를 사용하여 이미지를 분석합니다.<br>키는 이 기기의 브라우저에만 저장되며, 외부 서버로 전송되지 않습니다.</p>
+    <label class="field-label">Gemini API Key</label>
+    <input id="api-input" class="api-input" type="text" placeholder="AIzaSy..." autocomplete="off">
+    <div id="api-error" class="error-msg" style="display:none">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="api-error-text"></span>
+    </div>
+    <div id="api-spacer" class="mb-spacer"></div>
+    <button class="btn-primary" id="btn-save-key">저장하고 시작하기</button>
+    <p class="api-footer">API 키가 없으신가요? <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer">Google AI Studio</a>에서 무료로 발급받을 수 있습니다.</p>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="app-screen">
+  <div class="inner">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div>
+        <h1>🔬 스마트 과학교구 분석기</h1>
+        <p>이미지 캡처 후 <strong>Ctrl+V</strong>를 누르면 2022 개정 기준에 맞게 추출됩니다. (소모품 자동 제외)</p>
+      </div>
+      <div class="header-btns">
+        <button class="btn-reset" id="btn-reset-key">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          API 키 변경
+        </button>
+        <input type="file" id="file-input" multiple accept="image/*,application/pdf,.pdf,.hwp,.hwpx" style="display:none">
+        <button class="btn-upload" id="btn-upload">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          파일 직접 선택
+        </button>
+      </div>
+    </header>
+
+    <!-- Textbook section -->
+    <div id="textbook-section" style="display:none">
+      <p class="section-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue)"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        분석 중인 교과서 현황
+      </p>
+      <div class="textbook-grid" id="textbook-grid"></div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="empty-state" onclick="document.getElementById('file-input').click()">
+      <div class="empty-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue);margin-bottom:2px"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+      </div>
+      <h3>화면 캡처 후 Ctrl + V</h3>
+      <p>준비물 텍스트 한 줄만 캡처해도 완벽하게 인식합니다.<br>화면 아무 곳에서나 <strong>Ctrl+V</strong>를 눌러 분석을 시작하세요.</p>
+    </div>
+
+    <!-- Analysis table -->
+    <div class="table-section" id="table-section" style="display:none">
+      <div class="table-header">
+        <div>
+          <h2>📊 2022 개정 기준 통합 교구 분석표</h2>
+          <p>업로드된 내용 중 기준표에 없는 항목은 <span class="code-inline">기타 (기준표 외)</span>로 표 하단에 모아서 표시됩니다.</p>
+        </div>
+        <div class="copy-btns">
+          <button class="btn-copy btn-copy-primary" id="btn-copy-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            헤더 포함 복사
+          </button>
+          <div class="divider"></div>
+          <button class="btn-copy btn-copy-secondary" id="btn-copy-data" title="표의 뼈대가 이미 있을 때 내용만 채워넣기 좋습니다.">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            데이터만 복사
+          </button>
+        </div>
+      </div>
+      <div class="copy-success-bar" id="copy-success-bar" style="display:none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--emerald);flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg>
+        <p><strong>클립보드에 표 데이터가 완벽하게 복사되었습니다!</strong><br>
+        한글 문서에서 표를 생성할 위치에 <code>Ctrl+V</code>를 누르시면 <strong>각 항목이 독립된 칸(셀)에 정확히 나뉘어 들어갑니다.</strong><br>
+        <span style="color:#059669">(기존에 만들어둔 표에 덮어쓰시려면, 표 전체를 <code>F5</code>로 블록 지정한 후 붙여넣으세요)</span></p>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:130px">영역</th>
+              <th style="width:180px">교구 종목</th>
+              <th>규격</th>
+              <th style="width:110px">소요 기준</th>
+              <th style="width:90px;text-align:center">분류</th>
+              <th style="width:160px">비고</th>
+            </tr>
+          </thead>
+          <tbody id="analysis-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── DATA ────────────────────────────────────────────────────────────────────
+const STANDARD_EQUIPMENT = [
+  // 공통-일반교구
+  { category:"공통-일반교구", name:"가지 달린 삼각 플라스크", spec:"각종(100∼300 mL)", requirement:"4학생당 1", type:"필수", keywords:["가지 달린 삼각 플라스크","가지달린삼각플라스크","가지달린 삼각플라스크"] },
+  { category:"공통-일반교구", name:"감압 실험 용기", spec:"1 L 내외, 펌프 포함", requirement:"4학생당 1", type:"권장", keywords:["감압 실험 용기","감압실험용기","감압용기","진공 용기"] },
+  { category:"공통-일반교구", name:"금속 비커", spec:"약 200 mL", requirement:"2학생당 1", type:"필수", keywords:["금속 비커","금속비커","스테인리스 비커"] },
+  { category:"공통-일반교구", name:"공구 세트", spec:"십자, 일자 드라이버, 펜치, 니퍼, 플라이어, 망치, 쇠톱, 줄셋트, 아크릴칼", requirement:"학교당 2", type:"필수", keywords:["공구 세트","공구세트","드라이버","공구"] },
+  { category:"공통-일반교구", name:"금속판", spec:"구리판, 아연판, 철판 등", requirement:"4학생당 1", type:"필수", keywords:["금속판","구리판","아연판","철판"] },
+  { category:"공통-일반교구", name:"깔때기", spec:"약 ø60 mm, 유리(플라스틱)", requirement:"4학생당 1", type:"필수", keywords:["깔때기"] },
+  { category:"공통-일반교구", name:"깔때기대", spec:"2구용, 목제 또는 플라스틱제", requirement:"4학생당 1", type:"필수", keywords:["깔때기대","깔때기 대"] },
+  { category:"공통-일반교구", name:"냉장고", spec:"600 L 이상", requirement:"학교당 1", type:"필수", keywords:["냉장고"] },
+  { category:"공통-일반교구", name:"다용도 홈판", spec:"3종(6~96 well)", requirement:"2학생당 1", type:"필수", keywords:["다용도 홈판","다용도홈판","홈판","well 플레이트","웰 플레이트"] },
+  { category:"공통-일반교구", name:"돋보기", spec:"ø60 mm 이상, 6x 이상, 손잡이부", requirement:"2학생당 1", type:"필수", keywords:["돋보기","확대경","루페"] },
+  { category:"공통-일반교구", name:"링", spec:"ø50~100 mm, 홀더 포함", requirement:"4학생당 1", type:"필수", keywords:["링","링 클램프","스탠드링"] },
+  { category:"공통-일반교구", name:"막자사발", spec:"ø100 mm 이상, 막자포함", requirement:"4학생당 1", type:"필수", keywords:["막자사발","막자","절구"] },
+  { category:"공통-일반교구", name:"분무기", spec:"약 300 mL", requirement:"4학생당 1", type:"권장", keywords:["분무기"] },
+  { category:"공통-일반교구", name:"비커", spec:"각종(50∼1,000 mL)", requirement:"4학생당 1", type:"필수", keywords:["비커","유리 비커","유리비커","플라스틱 비커"] },
+  { category:"공통-일반교구", name:"삼각 플라스크", spec:"각종(50∼500 mL)", requirement:"4학생당 1", type:"권장", keywords:["삼각 플라스크","삼각플라스크","삼각형 플라스크"] },
+  { category:"공통-일반교구", name:"삼각대", spec:"30x30x185 mm, 2단", requirement:"4학생당 1", type:"필수", keywords:["삼각대","삼발이"] },
+  { category:"공통-일반교구", name:"솔", spec:"시험관, 비커, 피펫 세척용", requirement:"4학생당 1", type:"필수", keywords:["솔","세척용 솔","시험관 솔","비커 솔"] },
+  { category:"공통-일반교구", name:"수조(사각)", spec:"250x150x150 mm 이상", requirement:"4학생당 1", type:"권장", keywords:["수조 사각","사각수조","사각 수조"] },
+  { category:"공통-일반교구", name:"수조(원형)", spec:"ø200 mm 이상", requirement:"4학생당 1", type:"필수", keywords:["수조","수조 원형","원형수조","원형 수조","물통"] },
+  { category:"공통-일반교구", name:"스마트 기기", spec:"", requirement:"1학생당 1", type:"필수", keywords:["스마트 기기","스마트기기","태블릿","스마트폰","노트북","PC","패드"] },
+  { category:"공통-일반교구", name:"스포이트", spec:"유리(5∼10 mL)", requirement:"4학생당 1", type:"필수", keywords:["스포이트","스포이드"] },
+  { category:"공통-일반교구", name:"시험관", spec:"각종 10개 1조", requirement:"4학생당 1", type:"필수", keywords:["시험관","유리 시험관"] },
+  { category:"공통-일반교구", name:"시험관 집게", spec:"철제 또는 목제", requirement:"2학생당 1", type:"필수", keywords:["시험관 집게","시험관집게"] },
+  { category:"공통-일반교구", name:"시험관대", spec:"", requirement:"4학생당 1", type:"필수", keywords:["시험관대","시험관 대"] },
+  { category:"공통-일반교구", name:"약숟가락", spec:"스테인리스 강제", requirement:"4학생당 1", type:"권장", keywords:["약숟가락","시약스푼","약 숟가락","약스푼"] },
+  { category:"공통-일반교구", name:"유리 막대", spec:"ø5 mm, 길이 약 300 mm", requirement:"4학생당 1", type:"필수", keywords:["유리 막대","유리막대"] },
+  { category:"공통-일반교구", name:"유리관", spec:"ø5 mm 정도, 길이 약 5 cm", requirement:"4학생당 1", type:"필수", keywords:["유리관","유리 관"] },
+  { category:"공통-일반교구", name:"적외선등", spec:"150 W 이상", requirement:"4학생당 1", type:"필수", keywords:["적외선등","적외선 등","적외선 전구","적외선램프"] },
+  { category:"공통-일반교구", name:"전기스탠드", spec:"AC, 광량조절식", requirement:"4학생당 1", type:"필수", keywords:["전기스탠드","전기 스탠드","조명 스탠드","스탠드 조명"] },
+  { category:"공통-일반교구", name:"전기포트", spec:"AC 220 V, 2 L 정도", requirement:"실험실당 2", type:"필수", keywords:["전기포트","전기 포트","전기 주전자"] },
+  { category:"공통-일반교구", name:"전열기(또는 핫플레이트)", spec:"AC, 500∼1,000 W", requirement:"4학생당 1", type:"필수", keywords:["전열기","핫플레이트","가열 장치","가열장치","히터","전기 가열기"] },
+  { category:"공통-일반교구", name:"점적병1", spec:"백색 2종(50 mL, 100 mL) 1조", requirement:"4학생당 1", type:"필수", keywords:["점적병","점적 병","시약병 점적","드롭퍼 병"] },
+  { category:"공통-일반교구", name:"점적병2", spec:"갈색 2종(50 mL, 100 mL) 1조", requirement:"4학생당 1", type:"필수", keywords:["갈색 점적병","갈색점적병","갈색 시약병"] },
+  { category:"공통-일반교구", name:"점화기", spec:"압전식", requirement:"4학생당 1", type:"필수", keywords:["점화기","라이터","가스 점화기","압전식 점화기"] },
+  { category:"공통-일반교구", name:"주사기", spec:"각종(20∼50mL), 플라스틱", requirement:"4학생당 1", type:"필수", keywords:["주사기","플라스틱 주사기"] },
+  { category:"공통-일반교구", name:"증발 접시", spec:"ø60 mm 이상", requirement:"4학생당 1", type:"필수", keywords:["증발 접시","증발접시"] },
+  { category:"공통-일반교구", name:"증발 접시 집게", spec:"ø200 mm 정도, 스테인리스", requirement:"4학생당 1", type:"필수", keywords:["증발 접시 집게","증발접시집게","도가니 집게"] },
+  { category:"공통-일반교구", name:"집게", spec:"홀더 포함, 스탠드 고정용", requirement:"4학생당 1", type:"필수", keywords:["집게","클램프","스탠드 집게"] },
+  { category:"공통-일반교구", name:"철제스탠드", spec:"높이 600 mm 이상, 클램프 포함, 철제", requirement:"4학생당 1", type:"필수", keywords:["철제스탠드","스탠드","철제 스탠드","스텐드","가열용 스탠드","실험용 스탠드"] },
+  { category:"공통-일반교구", name:"투명한 플라스틱 관", spec:"ø10 cm, 길이1 m", requirement:"4학생당 1", type:"권장", keywords:["투명한 플라스틱 관","투명 플라스틱 관","투명관","플라스틱 관"] },
+  { category:"공통-일반교구", name:"페트리 접시", spec:"ø100∼150 mm, 유리 또는 PVC", requirement:"2학생당 1", type:"필수", keywords:["페트리 접시","페트리접시"] },
+  { category:"공통-일반교구", name:"핀셋", spec:"스테인리스 강제", requirement:"4학생당 1", type:"권장", keywords:["핀셋","핀셑"] },
+  { category:"공통-일반교구", name:"헤어드라이어", spec:"AC 220 V, 냉온 겸용", requirement:"4학생당 1", type:"필수", keywords:["헤어드라이어","드라이어","드라이기"] },
+  // 공통-측정교구
+  { category:"공통-측정교구", name:"MBL 인터페이스", spec:"MBL용", requirement:"4학생당 1", type:"권장", keywords:["MBL 인터페이스","MBL인터페이스","MBL","인터페이스"] },
+  { category:"공통-측정교구", name:"각도기", spec:"약 ø200 mm", requirement:"4학생당 1", type:"필수", keywords:["각도기"] },
+  { category:"공통-측정교구", name:"눈금실린더", spec:"각종(10∼1,000 mL)", requirement:"4학생당 1", type:"필수", keywords:["눈금실린더","메스실린더","눈금 실린더"] },
+  { category:"공통-측정교구", name:"눈금피펫", spec:"각종(5∼25 mL)", requirement:"4학생당 1", type:"필수", keywords:["눈금피펫","눈금 피펫","메스피펫"] },
+  { category:"공통-측정교구", name:"디지털 온도계", spec:"접촉식, 온도 범위 약 -40~200 ℃", requirement:"4학생당 1", type:"필수", keywords:["디지털 온도계","디지털온도계"] },
+  { category:"공통-측정교구", name:"센서(가속도)", spec:"유선 또는 무선", requirement:"4학생당 1", type:"확장", keywords:["센서 가속도","가속도 센서","가속도센서"] },
+  { category:"공통-측정교구", name:"센서(근전도)", spec:"20 Hz~500 Hz 내외", requirement:"4학생당 1", type:"확장", keywords:["센서 근전도","근전도 센서","근전도센서","EMG 센서"] },
+  { category:"공통-측정교구", name:"센서(기체 압력)", spec:"0~2 atm 내외, 유선 또는 무선", requirement:"4학생당 1", type:"필수", keywords:["센서 기체 압력","기체 압력 센서","기체압력센서","압력 센서","압력센서"] },
+  { category:"공통-측정교구", name:"센서(온도)", spec:"온도 범위 약 -40~125 ℃, 유선 또는 무선", requirement:"4학생당 1", type:"필수", keywords:["센서 온도","온도 센서","온도센서","MBL 온도 센서","무선 온도 센서"] },
+  { category:"공통-측정교구", name:"센서(이산화 탄소)", spec:"0~5,000 ppm, 유선 또는 무선", requirement:"4학생당 1", type:"필수", keywords:["센서 이산화탄소","이산화탄소 센서","이산화탄소센서","CO2 센서","CO2센서"] },
+  { category:"공통-측정교구", name:"알코올 온도계", spec:"온도 범위 약 -20~110 ℃", requirement:"4학생당 1", type:"필수", keywords:["알코올 온도계","알코올온도계","온도계","유리 온도계"] },
+  { category:"공통-측정교구", name:"열화상 카메라", spec:"온도 범위 약 -25~550 ℃", requirement:"4학생당 1", type:"필수", keywords:["열화상 카메라","열화상카메라","적외선 카메라"] },
+  { category:"공통-측정교구", name:"자1", spec:"1 m", requirement:"4학생당 1", type:"필수", keywords:["1m 자","1 m 자","미터 자","막대자","줄자","1미터 자"] },
+  { category:"공통-측정교구", name:"자2", spec:"30 cm", requirement:"2학생당 1", type:"필수", keywords:["30cm 자","30 cm 자","자","플라스틱 자","삼각자"] },
+  { category:"공통-측정교구", name:"전자저울", spec:"칭량 100∼500 g, 감량 0.1 g", requirement:"4학생당 1", type:"필수", keywords:["전자저울","저울","전자 저울","디지털 저울"] },
+  { category:"공통-측정교구", name:"초시계", spec:"디지털, 1/100초", requirement:"4학생당 1", type:"필수", keywords:["초시계","스톱워치"] },
+  { category:"공통-측정교구", name:"피펫 필러", spec:"슬라이딩식 또는 스포이트식", requirement:"4학생당 1", type:"필수", keywords:["피펫 필러","피펫필러","피펫 빨개","안전 피펫"] },
+  // 운동과 에너지
+  { category:"운동과 에너지", name:"간이 스위치", spec:"DC용", requirement:"4학생당 1", type:"필수", keywords:["간이 스위치","간이스위치","스위치"] },
+  { category:"운동과 에너지", name:"거울(볼록)", spec:"ø76 mm 이상", requirement:"4학생당 1", type:"필수", keywords:["볼록 거울","볼록거울","거울 볼록"] },
+  { category:"운동과 에너지", name:"거울(오목)", spec:"ø76 mm 이상", requirement:"4학생당 1", type:"필수", keywords:["오목 거울","오목거울","거울 오목"] },
+  { category:"운동과 에너지", name:"거울(평면)", spec:"100x150 mm 내외", requirement:"4학생당 1", type:"필수", keywords:["평면 거울","평면거울","거울","거울 평면"] },
+  { category:"운동과 에너지", name:"고리 달린 나무 도막", spec:"약 100x70x10 mm, 양쪽 걸고리부", requirement:"4학생당 1", type:"권장", keywords:["고리 달린 나무 도막","나무 도막","나무도막"] },
+  { category:"운동과 에너지", name:"나침반", spec:"ø50 mm정도, 방위각 명시", requirement:"1학생당 1", type:"필수", keywords:["나침반","방위 나침반"] },
+  { category:"운동과 에너지", name:"니크롬선", spec:"3종(100 W, 200 W, 300 W용) 1조", requirement:"4학생당 1", type:"필수", keywords:["니크롬선","니크롬 선"] },
+  { category:"운동과 에너지", name:"대류관", spec:"약 175x15x250 mm, 약 90mL 용량", requirement:"4학생당 1", type:"권장", keywords:["대류관","대류 관"] },
+  { category:"운동과 에너지", name:"렌즈(볼록)", spec:"ø76 mm 이상", requirement:"4학생당 1", type:"필수", keywords:["볼록 렌즈","볼록렌즈","렌즈 볼록"] },
+  { category:"운동과 에너지", name:"렌즈(오목)", spec:"ø76 mm 이상", requirement:"4학생당 1", type:"필수", keywords:["오목 렌즈","오목렌즈","렌즈 오목"] },
+  { category:"운동과 에너지", name:"센서(힘)", spec:"-80~80 N 내외", requirement:"4학생당 1", type:"필수", keywords:["센서 힘","힘 센서","힘센서","포스 센서"] },
+  { category:"운동과 에너지", name:"소리굽쇠", spec:"6종 세트", requirement:"4학생당 1", type:"권장", keywords:["소리굽쇠","음차"] },
+  { category:"운동과 에너지", name:"속력 측정기", spec:"60x60x50 mm", requirement:"2학생당 1", type:"필수", keywords:["속력 측정기","속력측정기","속도 측정기","포토게이트"] },
+  { category:"운동과 에너지", name:"손전등", spec:"광량 조절식", requirement:"4학생당 1", type:"필수", keywords:["손전등","후레쉬","랜턴"] },
+  { category:"운동과 에너지", name:"쇠구슬", spec:"ø10 mm이상, 질량 2종류 이상", requirement:"4학생당 1", type:"필수", keywords:["쇠구슬","금속 구슬","철구슬"] },
+  { category:"운동과 에너지", name:"역학용 금속추", spec:"20∼500 g, 고리부, 5종 1조", requirement:"4학생당 1", type:"필수", keywords:["역학용 금속추","금속추","추","역학 추"] },
+  { category:"운동과 에너지", name:"연결용 도선", spec:"길이 300 mm 이상, 집게, 플러그부", requirement:"4학생당 6", type:"필수", keywords:["연결용 도선","도선","전선","전기 도선","집게 달린 전선"] },
+  { category:"운동과 에너지", name:"열량계", spec:"온도계, 교반기 포함", requirement:"4학생당 1", type:"필수", keywords:["열량계","열량 계"] },
+  { category:"운동과 에너지", name:"용수철", spec:"길이 약 200 mm, 탄성률 20∼50 g중 / 10 mm", requirement:"4학생당 1", type:"필수", keywords:["용수철","스프링"] },
+  { category:"운동과 에너지", name:"자기장 실험 세트", spec:"3종 1조(직선, 원형, 솔레노이드)", requirement:"4학생당 1", type:"필수", keywords:["자기장 실험 세트","자기장실험세트","전자기 실험"] },
+  { category:"운동과 에너지", name:"전류계", spec:"DC 0∼0.5 mA, 0∼5 A 겸용", requirement:"4학생당 1", type:"필수", keywords:["전류계","전류 계","암미터"] },
+  { category:"운동과 에너지", name:"전압계", spec:"DC 0∼1.5 V, 0∼15 V 겸용", requirement:"4학생당 1", type:"필수", keywords:["전압계","전압 계","볼트미터"] },
+  { category:"운동과 에너지", name:"직류전원장치", spec:"출력 50 W이상, DC 0∼24 V 연속가변", requirement:"4학생당 1", type:"필수", keywords:["직류전원장치","직류 전원장치","전원장치","전원 장치","DC전원장치","DC 전원장치","전원공급기","직류전원"] },
+  // 물질
+  { category:"물질", name:"분별 깔때기", spec:"250 mL", requirement:"4학생당 1", type:"필수", keywords:["분별 깔때기","분별깔때기"] },
+  { category:"물질", name:"뷰렛 집게", spec:"홀더 포함", requirement:"4학생당 1", type:"권장", keywords:["뷰렛 집게","뷰렛집게"] },
+  { category:"물질", name:"뷰렛", spec:"백색, 50 mL", requirement:"4학생당 1", type:"권장", keywords:["뷰렛"] },
+  { category:"물질", name:"시약병", spec:"250∼500 mL, 광구, 백색 또는 갈색", requirement:"4학생당 1", type:"필수", keywords:["시약병","시약 병","갈색 시약병","백색 시약병"] },
+  // 생명
+  { category:"생명", name:"고무망치", spec:"고무, 스테인리스제 손잡이", requirement:"4학생당 1", type:"필수", keywords:["고무망치","고무 망치"] },
+  { category:"생명", name:"멀티미디어 영상 현미경", spec:"CCD카메라, 어댑터, 케이블", requirement:"실험실당 1", type:"권장", keywords:["멀티미디어 영상 현미경","영상 현미경","CCD 현미경"] },
+  { category:"생명", name:"영구표본(검정말)", spec:"", requirement:"2학생당 1", type:"권장", keywords:["영구표본 검정말","검정말 표본","검정말 영구표본"] },
+  { category:"생명", name:"영구표본(구강 상피세포)", spec:"", requirement:"2학생당 1", type:"필수", keywords:["영구표본 구강 상피세포","구강 상피세포 표본","상피세포 표본"] },
+  { category:"생명", name:"영구표본(식물 체세포 분열)", spec:"", requirement:"2학생당 1", type:"권장", keywords:["영구표본 식물 체세포 분열","체세포 분열 표본","양파 세포분열 표본"] },
+  { category:"생명", name:"영구표본(신경세포)", spec:"", requirement:"2학생당 1", type:"필수", keywords:["영구표본 신경세포","신경세포 표본"] },
+  { category:"생명", name:"영구표본(적혈구)", spec:"", requirement:"2학생당 1", type:"필수", keywords:["영구표본 적혈구","적혈구 표본"] },
+  { category:"생명", name:"영구표본(짚신벌레)", spec:"", requirement:"2학생당 1", type:"권장", keywords:["영구표본 짚신벌레","짚신벌레 표본"] },
+  { category:"생명", name:"폐운동 원리 실험장치", spec:"플라스틱 병, 고무풍선, 고무막", requirement:"4학생당 1", type:"권장", keywords:["폐운동 원리 실험장치","폐운동 실험장치","폐모형","폐 모형"] },
+  { category:"생명", name:"해부침", spec:"2개 세트", requirement:"1학생당 1", type:"필수", keywords:["해부침","해부 침","해부 세트"] },
+  { category:"생명", name:"현미경(광학)", spec:"접안렌즈10x,15x, 대물렌즈 10x, 40x, 60x, 광원장치부착", requirement:"4학생당 1", type:"필수", keywords:["현미경","광학 현미경","광학현미경","생물 현미경"] },
+  { category:"생명", name:"현미경(실체)", spec:"10x~40x", requirement:"4학생당 1", type:"권장", keywords:["실체 현미경","실체현미경","해부 현미경"] },
+  // 지구와 우주
+  { category:"지구와 우주", name:"건습구 습도계", spec:"-20∼50 ℃", requirement:"4학생당 1", type:"권장", keywords:["건습구 습도계","건습구습도계","습도계","건습구 온도계"] },
+  { category:"지구와 우주", name:"광물 결정구조 표본", spec:"320x200x45 mm(7종 1조)", requirement:"4학생당 1", type:"권장", keywords:["광물 결정구조 표본","결정구조 표본","광물 결정 표본"] },
+  { category:"지구와 우주", name:"광물 표본", spec:"ø40 mm 이상(20종 1조)", requirement:"4학생당 1", type:"필수", keywords:["광물 표본","광물표본","광물시료","광물 시료","광물 샘플"] },
+  { category:"지구와 우주", name:"구름 발생 장치 실험 세트", spec:"디지털 온도계 포함, 아크릴타입", requirement:"4학생당 1", type:"필수", keywords:["구름 발생 장치","구름발생장치","구름 발생 실험"] },
+  { category:"지구와 우주", name:"기압계", spec:"ø150×55 mm, 아네로이드식", requirement:"4학생당 1", type:"권장", keywords:["기압계","아네로이드 기압계"] },
+  { category:"지구와 우주", name:"망원경 스마트폰 거치대", spec:"", requirement:"학교당 2", type:"권장", keywords:["망원경 스마트폰 거치대","망원경 거치대"] },
+  { category:"지구와 우주", name:"모스 굳기계", spec:"10종 1조", requirement:"4학생당 1", type:"필수", keywords:["모스 굳기계","모스굳기계","굳기 실험 세트","경도 시험"] },
+  { category:"지구와 우주", name:"방해석 투명 결정", spec:"20x30 mm", requirement:"4학생당 1", type:"권장", keywords:["방해석 투명 결정","방해석","방해석 결정"] },
+  { category:"지구와 우주", name:"변성암 표본", spec:"ø70 mm 이상(10종 1조)", requirement:"4학생당 1", type:"필수", keywords:["변성암 표본","변성암표본","변성암 시료","변성암시료","변성암 샘플","변성암"] },
+  { category:"지구와 우주", name:"삼구의", spec:"태양, 지구, 달 회전식", requirement:"학교당 2", type:"권장", keywords:["삼구의"] },
+  { category:"지구와 우주", name:"성운 성단 사진 세트", spec:"30매 이상", requirement:"4학생당 1", type:"권장", keywords:["성운 성단 사진 세트","성운 사진","성단 사진"] },
+  { category:"지구와 우주", name:"수온의 연직분포 실험 세트", spec:"수조 크기 약 150x250 mm, 온도계 홀더 포함", requirement:"4학생당 1", type:"필수", keywords:["수온의 연직분포 실험 세트","연직분포 실험","수온 연직분포"] },
+  { category:"지구와 우주", name:"쌍안경", spec:"ø50 mm 이상", requirement:"학교당 2", type:"권장", keywords:["쌍안경"] },
+  { category:"지구와 우주", name:"조흔색 실험 광물 표본", spec:"275×200×45 mm(6종 1조)", requirement:"4학생당 1", type:"필수", keywords:["조흔색 실험 광물 표본","조흔색 표본","조흔판 실험"] },
+  { category:"지구와 우주", name:"조흔판", spec:"초벌구이판", requirement:"4학생당 1", type:"필수", keywords:["조흔판"] },
+  { category:"지구와 우주", name:"지학망치", spec:"", requirement:"4학생당 1", type:"권장", keywords:["지학망치","지질 망치","암석 망치"] },
+  { category:"지구와 우주", name:"천체 망원경", spec:"굴절식 또는 반사식, x10~x100", requirement:"학교당 2", type:"필수", keywords:["천체 망원경","천체망원경","망원경"] },
+  { category:"지구와 우주", name:"태양 투영판", spec:"ø200 mm 이상", requirement:"학교당 2", type:"권장", keywords:["태양 투영판","태양투영판"] },
+  { category:"지구와 우주", name:"태양 필터", spec:"대물렌즈용, 보조 망원경용", requirement:"학교당 2", type:"필수", keywords:["태양 필터","태양필터"] },
+  { category:"지구와 우주", name:"퇴적암 표본", spec:"ø70 mm 이상(10종 1조)", requirement:"4학생당 1", type:"필수", keywords:["퇴적암 표본","퇴적암표본","퇴적암 시료","퇴적암시료","퇴적암 샘플","퇴적암"] },
+  { category:"지구와 우주", name:"화성암 표본", spec:"ø70 mm 이상(10종 1조)", requirement:"4학생당 1", type:"필수", keywords:["화성암 표본","화성암표본","화성암 시료","화성암시료","화성암 샘플","화성암"] },
+  { category:"지구와 우주", name:"휴대용 조도계", spec:"디지털식", requirement:"4학생당 1", type:"권장", keywords:["휴대용 조도계","조도계","빛 측정기","럭스 미터"] },
+  // 안전장구
+  { category:"안전장구", name:"(안전)장갑", spec:"1회용 (폴리에틸렌, 라텍스, 나이트릴)", requirement:"1학생당 1", type:"필수", keywords:["장갑","안전장갑","실험용 장갑","라텍스 장갑","니트릴 장갑","일회용 장갑","폴리에틸렌 장갑"] },
+  { category:"안전장구", name:"내열장갑", spec:"내열온도 200 ℃", requirement:"학교당 6", type:"필수", keywords:["내열장갑","내열 장갑","화상 방지 장갑"] },
+  { category:"안전장구", name:"내화학장갑", spec:"총 길이 30 cm 이상, 나이트릴피복 등", requirement:"학교당 6", type:"필수", keywords:["내화학장갑","내화학 장갑","화학 장갑"] },
+  { category:"안전장구", name:"마스크1", spec:"일반 또는 방진용", requirement:"1학생당 1", type:"필수", keywords:["마스크","방진 마스크","일반 마스크"] },
+  { category:"안전장구", name:"마스크2", spec:"방독", requirement:"1학생당 1", type:"필수", keywords:["방독 마스크","방독마스크","방독면"] },
+  { category:"안전장구", name:"방염담요", spec:"", requirement:"실험실당 2", type:"필수", keywords:["방염담요","방염 담요","소화 담요"] },
+  { category:"안전장구", name:"보안경1", spec:"안경식", requirement:"1학생당 1", type:"필수", keywords:["보안경","안전경","보호 안경"] },
+  { category:"안전장구", name:"보안경2", spec:"레이저 보안경", requirement:"1학생당 1", type:"필수", keywords:["레이저 보안경","레이저보안경","레이저 안전경"] },
+  { category:"안전장구", name:"보안경3", spec:"고글식", requirement:"학교당 30", type:"권장", keywords:["고글","고글식 보안경"] },
+  { category:"안전장구", name:"학생용 실험복", spec:"면소재 실험복", requirement:"1학생당 1", type:"필수", keywords:["실험복","학생용 실험복","가운"] },
+];
+
+const EXCLUDED_KEYWORDS = ['거름종이','거름 종이','시약포지','약포지','시약 포지','약 포지','유산지','리트머스','pH시험지','시약','용액','물','얼음','에탄올','메탄올','가루','소금','설탕','모래','색소'];
+const CATEGORY_ORDER = {'공통-일반교구':1,'공통-측정교구':2,'운동과 에너지':3,'물질':4,'생명':5,'지구와 우주':6,'안전장구':7,'기타 (기준표 외)':8};
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let apiKey = localStorage.getItem('gemini_api_key') || '';
+let textbooks = [];
+let copyState = 'idle'; // idle | copiedWithHeader | copiedDataOnly
+let copyStateTimer = null;
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+function init() {
+  if (apiKey) showApp();
+  else showApiScreen();
+
+  document.getElementById('btn-save-key').addEventListener('click', saveKey);
+  document.getElementById('api-input').addEventListener('keydown', e => { if (e.key==='Enter') saveKey(); });
+  document.getElementById('btn-reset-key').addEventListener('click', resetKey);
+  document.getElementById('btn-upload').addEventListener('click', () => document.getElementById('file-input').click());
+  document.getElementById('file-input').addEventListener('change', e => processFiles(Array.from(e.target.files)));
+  document.getElementById('btn-copy-header').addEventListener('click', () => copyToHWP(true));
+  document.getElementById('btn-copy-data').addEventListener('click', () => copyToHWP(false));
+
+  window.addEventListener('paste', e => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const files = [];
+    for (let i=0;i<items.length;i++) {
+      if (items[i].type.indexOf('image')!==-1 || items[i].type.indexOf('pdf')!==-1) {
+        const f = items[i].getAsFile();
+        if (f) files.push(f);
+      }
+    }
+    if (files.length > 0) processFiles(files);
+  });
+}
+
+function showApiScreen() {
+  document.getElementById('api-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display = 'none';
+}
+function showApp() {
+  document.getElementById('api-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  renderAll();
+}
+
+function saveKey() {
+  const val = document.getElementById('api-input').value.trim();
+  if (!val) { showApiError('API 키를 입력해주세요.'); return; }
+  hideApiError();
+  apiKey = val;
+  localStorage.setItem('gemini_api_key', val);
+  showApp();
+}
+function resetKey() {
+  localStorage.removeItem('gemini_api_key');
+  apiKey = '';
+  textbooks = [];
+  showApiScreen();
+}
+function showApiError(msg) {
+  const el = document.getElementById('api-error');
+  document.getElementById('api-error-text').textContent = msg;
+  el.style.display = 'flex';
+  document.getElementById('api-spacer').style.display = 'none';
+}
+function hideApiError() {
+  document.getElementById('api-error').style.display = 'none';
+  document.getElementById('api-spacer').style.display = 'block';
+}
+
+// ── FILE PROCESSING ───────────────────────────────────────────────────────────
+function getBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.readAsDataURL(file);
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+  });
+}
+
+async function processFiles(files) {
+  if (!files || files.length === 0) return;
+  for (const file of files) {
+    const tbId = Date.now() + Math.random();
+    const ext = (file.name||'').split('.').pop().toLowerCase();
+    const isHwp = ext==='hwp'||ext==='hwpx';
+    const isPdf = ext==='pdf'||file.type==='application/pdf';
+    const imageUrl = URL.createObjectURL(file);
+
+    textbooks.push({
+      id: tbId,
+      title: `교과서 ${textbooks.length+1}`,
+      fileName: file.name||'Pasted Content',
+      imageUrl, isLoading: !isHwp, isHwp, isPdf, items: [], error: null
+    });
+    renderAll();
+
+    if (isHwp) {
+      updateTb(tbId, { isLoading:false, error:'HWP 파일은 화면을 캡처하여 Ctrl+V로 붙여넣어 주세요.' });
+      continue;
+    }
+
+    try {
+      const base64 = await getBase64(file);
+      let mime = file.type;
+      if (isPdf) mime = 'application/pdf';
+      if (!mime || (!mime.startsWith('image/') && mime!=='application/pdf')) mime = 'image/png';
+      const extracted = await extractEquipmentFromImage(base64, mime);
+      const mapped = mapToStandardDb(extracted);
+      updateTb(tbId, { isLoading:false, items: mapped });
+    } catch {
+      updateTb(tbId, { isLoading:false, error:'서버와 통신 중 문제가 발생했습니다. 다시 시도해 주세요.' });
+    }
+  }
+}
+
+function updateTb(id, patch) {
+  const idx = textbooks.findIndex(t => t.id===id);
+  if (idx===-1) return;
+  Object.assign(textbooks[idx], patch);
+  renderAll();
+}
+
+// ── GEMINI API ────────────────────────────────────────────────────────────────
+async function extractEquipmentFromImage(base64Data, mimeType) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+  const promptText = `당신은 텍스트 판독 및 과학교구 추출 전문가입니다.\n업로드된 이미지는 교과서 실험의 '준비물' 텍스트 부분만 아주 얇게 잘라낸 캡처 조각이거나 전체 페이지입니다.\n\n[핵심 임무]\n1. 2022 개정 과학교구 설비 기준표에 해당하는 정식 교구(비커, 온도계, 스마트 기기 등)와 일반 도구(가위, 자, 테이프 등)만 추출하세요.\n2. [강력 제외] 물, 에탄올, 시약 등의 '액체/화학 물질'과 거름종이, 시약포지, 약포지 등 1회성 '소모품류'는 목록에서 절대 추출하지 마세요.\n3. [암석·광물 표본 주의] '전원장치'는 반드시 '직류전원장치'로 추출하세요. '암석 표본'이라고 뭉뚱그리지 말고, 이미지에 보이는 대로 '화성암 표본', '퇴적암 표본', '변성암 표본'을 각각 개별 항목으로 추출하세요. '광물 표본'도 별도로 추출하세요.\n\n결과는 반드시 제공된 JSON 스키마에 따라 'equipment' 배열로 응답하세요.`;
+
+  const payload = {
+    contents: [{ role:'user', parts:[{ text:promptText },{ inlineData:{ mimeType, data:base64Data }}] }],
+    generationConfig: {
+      responseMimeType:'application/json',
+      responseSchema:{ type:'OBJECT', properties:{ equipment:{ type:'ARRAY', items:{ type:'STRING' }}}, required:['equipment'] }
+    }
+  };
+
+  const delays = [1000,2000,4000,8000,16000];
+  for (let i=0;i<5;i++) {
+    try {
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+      if (!res.ok) throw new Error(`API 에러 (${res.status})`);
+      const result = await res.json();
+      const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (text) {
+        try {
+          const parsed = JSON.parse(text);
+          return (parsed.equipment||[]).filter(item => {
+            const n = item.replace(/\s+/g,'');
+            return !EXCLUDED_KEYWORDS.some(kw => n.includes(kw.replace(/\s+/g,'')));
+          });
+        } catch { return []; }
+      }
+      return [];
+    } catch(err) {
+      if (i===4) throw err;
+      await new Promise(r=>setTimeout(r,delays[i]));
+    }
+  }
+}
+
+// ── MAPPING ───────────────────────────────────────────────────────────────────
+// "암석표본"처럼 뭉뚱그린 표현 → 화성암/퇴적암/변성암 세 항목으로 확장
+const ROCK_EXPAND_KEYWORDS = ['암석표본','암석표본','암석시료','암석샘플'];
+const ROCK_TYPES = ['화성암 표본','퇴적암 표본','변성암 표본'];
+
+function matchOneItem(n) {
+    // 1. exact match
+    let found = STANDARD_EQUIPMENT.find(std => std.keywords.some(kw => n===kw.replace(/\s+/g,'')));
+    // 2. partial match with collision guards
+    if (!found) {
+      found = STANDARD_EQUIPMENT.find(std => std.keywords.some(kw => {
+        const nk = kw.replace(/\s+/g,'');
+        if (nk==='장갑' && n.includes('내열')) return false;
+        if (nk==='장갑' && n.includes('고무')) return false;
+        if (nk==='장갑' && n.includes('화학')) return false;
+        if (nk==='집게' && n.includes('시험관')) return false;
+        if (nk==='집게' && n.includes('증발')) return false;
+        if (nk==='수조' && n.includes('사각')) return false;
+        if (nk==='수조' && n.includes('원형')) return false;
+        if (nk==='마스크' && n.includes('방독')) return false;
+        if (nk==='보안경' && n.includes('레이저')) return false;
+        if (nk==='보안경' && n.includes('고글')) return false;
+        return n.includes(nk);
+      }));
+    }
+    return found || null;
+}
+
+function mapToStandardDb(extractedItems) {
+  const pairs = [];
+  extractedItems.forEach(item => {
+    const n = item.replace(/\s+/g,'');
+    // 암석표본 뭉뚱그린 표현 → 세 암석 종류 모두 확장
+    if (ROCK_EXPAND_KEYWORDS.some(kw => n===kw || n.includes(kw))) {
+      ROCK_TYPES.forEach(rname => {
+        const std = STANDARD_EQUIPMENT.find(s => s.name===rname);
+        if (std) pairs.push({ original:item, standard:std });
+      });
+    } else {
+      pairs.push({ original:item, standard:matchOneItem(n) });
+    }
+  });
+  const unique = [], seen = new Set();
+  const mapped = pairs;
+  mapped.forEach(item => {
+    const key = item.standard ? `std_${item.standard.name}` : `org_${item.original.replace(/\s+/g,'')}`;
+    if (!seen.has(key)) { seen.add(key); unique.push(item); }
+  });
+  unique.sort((a,b) => {
+    if (a.standard && !b.standard) return -1;
+    if (!a.standard && b.standard) return 1;
+    return 0;
+  });
+  return unique;
+}
+
+// ── ANALYSIS TABLE ────────────────────────────────────────────────────────────
+function generateAnalysisData() {
+  const aggregated = {};
+  const activeTbs = textbooks.filter(t => !t.isLoading && !t.error);
+  activeTbs.forEach(tb => {
+    tb.items.forEach(item => {
+      const key = item.standard ? item.standard.name : item.original;
+      if (!aggregated[key]) {
+        aggregated[key] = {
+          category: item.standard ? item.standard.category : '기타 (기준표 외)',
+          name: item.standard ? item.standard.name : item.original,
+          spec: item.standard ? item.standard.spec : '-',
+          requirement: item.standard ? item.standard.requirement : '-',
+          type: item.standard ? item.standard.type : '-',
+          textbooks: new Set()
+        };
+      }
+      aggregated[key].textbooks.add(tb.title);
+    });
+  });
+  return Object.values(aggregated).map(item => {
+    const isCommon = item.textbooks.size === activeTbs.length && item.textbooks.size > 1;
+    return { ...item, remarks: isCommon ? '공통' : Array.from(item.textbooks).join(', ') };
+  }).sort((a,b) => (CATEGORY_ORDER[a.category]||9) - (CATEGORY_ORDER[b.category]||9));
+}
+
+// ── COPY TO HWP ───────────────────────────────────────────────────────────────
+function copyToHWP(withHeader) {
+  const data = generateAnalysisData();
+  if (!data.length) return;
+
+  const esc = v => String(v??'').replace(/\t/g,' ').replace(/\n/g,' ').replace(/\r/g,'');
+  const escHtml = v => String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const HEADERS = ['영역','교구 종목','규격','소요 기준','분류','비고'];
+
+  const tsvLines = [];
+  if (withHeader) tsvLines.push(HEADERS.map(esc).join('\t'));
+  data.forEach(row => tsvLines.push([row.category,row.name,row.spec,row.requirement,row.type,row.remarks].map(esc).join('\t')));
+  const tsv = tsvLines.join('\r\n');
+
+  let html = '<table border="1" style="border-collapse:collapse;">';
+  if (withHeader) html += `<tr>${HEADERS.map(h=>`<th>${escHtml(h)}</th>`).join('')}</tr>`;
+  data.forEach(row => { html += `<tr>${[row.category,row.name,row.spec,row.requirement,row.type,row.remarks].map(v=>`<td>${escHtml(v)}</td>`).join('')}</tr>`; });
+  html += '</table>';
+
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  div.style.cssText = 'position:fixed;left:-9999px';
+  document.body.appendChild(div);
+
+  const handleCopy = e => { e.clipboardData.setData('text/html',html); e.clipboardData.setData('text/plain',tsv); e.preventDefault(); };
+  div.addEventListener('copy', handleCopy);
+  const sel = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(div);
+  sel.removeAllRanges();
+  sel.addRange(range);
+
+  try {
+    document.execCommand('copy');
+    setCopyState(withHeader ? 'copiedWithHeader' : 'copiedDataOnly');
+    if (copyStateTimer) clearTimeout(copyStateTimer);
+    copyStateTimer = setTimeout(() => setCopyState('idle'), 3000);
+  } catch { alert('클립보드 복사에 실패했습니다.'); }
+  finally {
+    div.removeEventListener('copy', handleCopy);
+    sel.removeAllRanges();
+    document.body.removeChild(div);
+  }
+}
+
+function setCopyState(state) {
+  copyState = state;
+  const btnH = document.getElementById('btn-copy-header');
+  const btnD = document.getElementById('btn-copy-data');
+  const bar = document.getElementById('copy-success-bar');
+
+  const checkSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+  const copySvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+
+  if (state==='copiedWithHeader') {
+    btnH.className='btn-copy btn-copy-primary active';
+    btnH.innerHTML = checkSvg + ' 헤더 포함 복사완료';
+    btnD.className='btn-copy btn-copy-secondary';
+    btnD.innerHTML = copySvg + ' 데이터만 복사';
+    bar.style.display='flex';
+  } else if (state==='copiedDataOnly') {
+    btnH.className='btn-copy btn-copy-primary';
+    btnH.innerHTML = copySvg + ' 헤더 포함 복사';
+    btnD.className='btn-copy btn-copy-secondary active';
+    btnD.innerHTML = checkSvg + ' 데이터만 복사완료';
+    bar.style.display='flex';
+  } else {
+    btnH.className='btn-copy btn-copy-primary';
+    btnH.innerHTML = copySvg + ' 헤더 포함 복사';
+    btnD.className='btn-copy btn-copy-secondary';
+    btnD.innerHTML = copySvg + ' 데이터만 복사';
+    bar.style.display='none';
+  }
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderAll() {
+  renderTextbooks();
+  renderAnalysisTable();
+  // empty state visibility
+  const hasAny = textbooks.length > 0;
+  document.getElementById('empty-state').style.display = hasAny ? 'none' : 'block';
+  document.getElementById('textbook-section').style.display = hasAny ? 'block' : 'none';
+}
+
+function renderTextbooks() {
+  const grid = document.getElementById('textbook-grid');
+  grid.innerHTML = '';
+  textbooks.forEach(tb => {
+    const div = document.createElement('div');
+    div.className = 'tb-card';
+    div.innerHTML = `
+      <div class="tb-card-header">
+        <h3>${tb.title}</h3>
+        <button class="btn-remove" data-id="${tb.id}" title="삭제">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+      <div class="tb-preview">
+        ${tb.isPdf
+          ? `<div class="pdf-badge"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg><span style="font-weight:700;font-size:.85rem">PDF 문서</span></div>`
+          : `<img src="${tb.imageUrl}" alt="${tb.title}">`
+        }
+        ${tb.isLoading ? `<div class="loading-overlay"><div class="spinner"></div><span>도구 텍스트 판독 중...</span></div>` : ''}
+      </div>
+      <div class="tb-results${tb.isLoading||tb.error?' disabled':''}" data-tb-id="${tb.id}">
+        <div class="tb-results-header">
+          <span class="tb-results-title">AI 추출 결과</span>
+          ${!tb.isLoading && !tb.error && tb.items.length > 0
+            ? `<span class="copy-hint"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 가로 배열 복사</span>`
+            : ''}
+        </div>
+        ${tb.isLoading
+          ? `<div style="margin-top:.5rem"><div style="height:1rem;background:#e2e8f0;border-radius:.25rem;animation:pulse 1.5s ease-in-out infinite;width:75%;margin-bottom:.5rem"></div><div style="height:1rem;background:#e2e8f0;border-radius:.25rem;animation:pulse 1.5s ease-in-out infinite;width:50%"></div></div>`
+          : tb.error
+            ? `<div class="error-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>${tb.error}</span></div>`
+            : tb.items.length === 0
+              ? `<div class="empty-items">추출된 교구가 없습니다. (소모품 제외됨)</div>`
+              : `<ul class="item-list">${tb.items.map(item => `
+                  <li class="item-row">
+                    ${item.standard
+                      ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--emerald);flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>`
+                      : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted);flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`}
+                    <span class="item-name">${item.original}</span>
+                    ${item.standard
+                      ? (item.standard.name !== item.original ? `<span class="badge badge-mapped">→ ${item.standard.name}</span>` : '')
+                      : `<span class="badge badge-other">기타 도구</span>`}
+                  </li>`).join('')}</ul>`
+        }
+      </div>`;
+
+    div.querySelector('.btn-remove').addEventListener('click', () => removeTb(tb.id));
+    if (!tb.isLoading && !tb.error && tb.items.length > 0) {
+      div.querySelector('.tb-results').addEventListener('click', () => copyCardList(tb));
+    }
+    grid.appendChild(div);
+  });
+}
+
+function removeTb(id) {
+  textbooks = textbooks.filter(t => t.id!==id).map((t,i) => ({...t, title:`교과서 ${i+1}`}));
+  renderAll();
+}
+
+function copyCardList(tb) {
+  const text = tb.items.map(item => item.standard ? item.standard.name : item.original).join(', ');
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    // Show overlay briefly
+    const resultsEl = document.querySelector(`[data-tb-id="${tb.id}"]`);
+    if (resultsEl) {
+      const overlay = document.createElement('div');
+      overlay.className = 'copied-overlay';
+      overlay.innerHTML = `<span class="copied-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 가로 배열 복사됨!</span>`;
+      resultsEl.style.position='relative';
+      resultsEl.appendChild(overlay);
+      setTimeout(() => overlay.remove(), 2000);
+    }
+  } catch(e) { console.error(e); }
+  finally { document.body.removeChild(ta); }
+}
+
+function renderAnalysisTable() {
+  const activeTbs = textbooks.filter(t => !t.error);
+  const allDone = activeTbs.length > 0 && activeTbs.every(t => !t.isLoading);
+  const data = allDone ? generateAnalysisData() : [];
+
+  const section = document.getElementById('table-section');
+  section.style.display = (allDone && data.length > 0) ? 'block' : 'none';
+  if (!allDone || data.length === 0) return;
+
+  const tbody = document.getElementById('analysis-tbody');
+  tbody.innerHTML = data.map(row => {
+    const isOther = row.category === '기타 (기준표 외)';
+    const catLabel = isOther ? '<span class="other-label">기타 (기준 외)</span>' : row.category.replace('공통-','');
+    const typeBadge = isOther ? '<span style="color:var(--text-muted)">-</span>'
+      : row.type==='필수' ? `<span class="type-badge type-essential">필수</span>`
+      : row.type==='권장' ? `<span class="type-badge type-recommended">권장</span>`
+      : `<span class="type-badge type-extended">확장</span>`;
+    const remarksClass = row.remarks==='공통' ? 'common' : '';
+    return `<tr class="${isOther?'row-other':''}">
+      <td class="cat">${catLabel}</td>
+      <td class="name${isOther?' other-name':''}">${row.name}</td>
+      <td class="spec">${row.spec}</td>
+      <td class="req">${row.requirement}</td>
+      <td class="type-cell">${typeBadge}</td>
+      <td class="remarks"><span class="${remarksClass}">${row.remarks}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Pulse animation ───────────────────────────────────────────────────────────
+const style = document.createElement('style');
+style.textContent = '@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }';
+document.head.appendChild(style);
+
+init();
+</script>
+</body>
+</html>
