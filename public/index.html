@@ -705,10 +705,13 @@ async function extractEquipmentFromImage(base64Data, mimeType) {
     "- 이름이 비슷해도 물건이 다르면 연결하지 마세요.",
     '  예) 삼각자와 줄자는 자1(1m)·자2(30cm)와 다른 물건이므로 "" 입니다.',
     '  예) Y자관은 자가 아니고, 고무 링은 스탠드용 링이 아닙니다.',
+    '  예) 면장갑은 1회용 안전장갑이 아니므로 "" 입니다. ((안전)장갑은 폴리에틸렌·라텍스·나이트릴 1회용)',
     "- 규격을 참고해 구분하세요. 1m 자는 자1, 30cm 자는 자2 입니다.",
     "- 단위 없이 '자'라고만 적혀 있으면 자2 로 연결하세요.",
     "- '전원장치'는 '직류전원장치'로 연결하세요.",
     "- '집게 달린 전선'은 '연결용 도선'입니다.",
+    '- \'암석 표본\'처럼 종류를 밝히지 않고 뭉뚱그려 적혀 있으면 standard 를 "" 로 두세요.',
+    "  (프로그램이 화성암 표본·퇴적암 표본·변성암 표본 세 가지로 자동 확장합니다)",
     "",
     "[기준표 목록 — 이름 | 규격]",
     buildEquipmentListText()
@@ -776,7 +779,7 @@ const MAGNET_EXCLUDE = ['자석젓개','자석 젓개','자석교반기','자석
 const RULER_EXCLUDE = ['줄자','삼각자','상자','종이상자','투명상자','의자','모자','숫자','전자','분자','원자','입자','과자','감자'];
 
 // "암석표본"처럼 뭉뚱그린 표현 → 화성암/퇴적암/변성암 세 항목으로 확장
-const ROCK_EXPAND_KEYWORDS = ['암석표본','암석표본','암석시료','암석샘플'];
+const ROCK_EXPAND_KEYWORDS = ['암석표본','암석시료','암석샘플','여러가지암석'];
 const ROCK_TYPES = ['화성암 표본','퇴적암 표본','변성암 표본'];
 
 function matchOneItem(n) {
@@ -793,6 +796,7 @@ function matchOneItem(n) {
         if (nk==='장갑' && n.includes('내열')) return false;
         if (nk==='장갑' && n.includes('고무')) return false;
         if (nk==='장갑' && n.includes('화학')) return false;
+        if (nk==='장갑' && n.includes('면')) return false;   // 면장갑은 1회용 안전장갑이 아님
         if (nk==='집게' && n.includes('시험관')) return false;
         if (nk==='집게' && n.includes('증발')) return false;
         if (nk==='집게' && n.includes('전선')) return false;
