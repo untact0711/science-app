@@ -6,17 +6,18 @@
 <title>🔬 스마트 과학교구 분석기</title>
 <style>
   :root {
-    --bg: #f8fafc;
+    --bg: #f0f4ff;
     --white: #ffffff;
-    --border: #e2e8f0;
-    --border-light: #f1f5f9;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
-    --blue: #2563eb;
-    --blue-dark: #1d4ed8;
-    --blue-bg: #eff6ff;
-    --blue-light: #dbeafe;
+    --border: #eef0f8;
+    --border-light: #f0f2fa;
+    --text-primary: #1a1a2e;
+    --text-secondary: #5a6070;
+    --text-muted: #9aa0b4;
+    --blue: #4361ee;
+    --blue-dark: #3730a3;
+    --blue-bg: #eef2ff;
+    --blue-light: #c7d2fe;
+    --card-bg: #fafbff;
     --emerald: #10b981;
     --emerald-bg: #ecfdf5;
     --emerald-border: #a7f3d0;
@@ -25,8 +26,8 @@
     --rose-border: #fecdd3;
     --amber-bg: #fffbeb;
     --amber-text: #92400e;
-    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
-    --shadow-md: 0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -1px rgba(0,0,0,.05);
+    --shadow: 0 2px 16px rgba(67,97,238,.07);
+    --shadow-md: 0 8px 40px rgba(67,97,238,.10);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -78,66 +79,87 @@
   .api-footer a { color: var(--blue); text-decoration: underline; text-underline-offset: 2px; }
 
   /* ── MAIN APP ── */
-  #app-screen { display: none; padding: 1.5rem; }
-  .inner { max-width: 1152px; margin: 0 auto; }
+  #app-screen { display: none; }
+  .inner { max-width: 1400px; margin: 0 auto; padding: 2rem 2.5rem; }
 
-  /* Header */
+  /* Header — 전체 폭 그라데이션 바 */
   .app-header {
-    background: var(--white); border-radius: 1.25rem;
-    padding: 2rem; box-shadow: var(--shadow); border: 1px solid var(--border-light);
+    background: linear-gradient(135deg, #4361ee 0%, #7c3aed 100%);
+    padding: 1.5rem 2.5rem;
     display: flex; flex-wrap: wrap; align-items: center;
-    justify-content: space-between; gap: 1rem; margin-bottom: 2rem;
+    justify-content: space-between; gap: 1rem;
+    box-shadow: 0 4px 20px rgba(67,97,238,.25);
   }
-  .app-header h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em; }
-  .app-header p { margin-top: .5rem; color: var(--text-secondary); font-size: .9rem; }
-  .header-btns { display: flex; align-items: center; gap: .75rem; }
+  .app-header h1 {
+    color: #fff; font-size: 22px; font-weight: 800;
+    display: flex; align-items: center; gap: 10px; letter-spacing: -.02em;
+  }
+  .app-header p { margin-top: 3px; color: rgba(255,255,255,.75); font-size: 13px; }
+  .header-btns { display: flex; align-items: center; gap: 10px; }
   .btn-reset {
-    display: flex; align-items: center; gap: .375rem;
-    font-size: .75rem; color: var(--text-muted); background: none;
-    border: 1px solid var(--border); border-radius: .5rem;
-    padding: .5rem .75rem; cursor: pointer; transition: color .15s, border-color .15s;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: #fff; background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.3); border-radius: 10px;
+    padding: 8px 14px; cursor: pointer; backdrop-filter: blur(4px);
+    transition: background .15s;
   }
-  .btn-reset:hover { color: #ef4444; border-color: #fecdd3; }
+  .btn-reset:hover { background: rgba(255,255,255,.28); }
   .btn-upload {
-    display: flex; align-items: center; gap: .5rem;
-    background: var(--blue); color: #fff; border: none;
-    border-radius: .75rem; padding: .7rem 1.4rem;
-    font-size: .9rem; font-weight: 600; cursor: pointer; transition: background .15s;
-    white-space: nowrap;
+    display: flex; align-items: center; gap: 8px;
+    background: #fff; color: var(--blue); border: none;
+    border-radius: 10px; padding: 10px 20px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 2px 12px rgba(0,0,0,.1); white-space: nowrap;
+    transition: transform .1s;
   }
-  .btn-upload:hover { background: var(--blue-dark); }
+  .btn-upload:active { transform: scale(.98); }
+
+  /* 섹션 라벨 */
+  .section-label {
+    font-size: 11px; font-weight: 800; color: var(--text-muted);
+    letter-spacing: .1em; text-transform: uppercase;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-line { flex: 1; height: 1px; background: #e2e8f0; }
+  .section-hint { color: var(--blue-light); font-weight: 400; font-size: 11px; text-transform: none; letter-spacing: 0; }
 
   /* Empty state */
   .empty-state {
-    text-align: center; padding: 5rem 1.5rem;
-    border: 2px dashed #cbd5e1; border-radius: 1.5rem;
-    background: rgba(248,250,252,.8); cursor: pointer; transition: background .15s;
+    text-align: center; padding: 3rem 2rem;
+    border: 2px dashed var(--blue-light); border-radius: 16px;
+    background: var(--card-bg); cursor: pointer;
+    transition: background .2s, border-color .2s; margin-bottom: 2.5rem;
   }
-  .empty-state:hover { background: rgba(241,245,249,.8); }
+  .empty-state:hover { background: var(--blue-bg); border-color: var(--blue); }
   .empty-icon {
-    background: var(--white); width: 5rem; height: 5rem; border-radius: 50%;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    margin: 0 auto 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border-light);
+    margin: 0 auto 12px;
   }
-  .empty-state h3 { font-size: 1.4rem; font-weight: 800; margin-bottom: .75rem; }
-  .empty-state p { color: var(--text-secondary); font-size: .95rem; line-height: 1.6; max-width: 480px; margin: 0 auto; }
+  .empty-state h3 { font-size: 18px; font-weight: 800; color: var(--blue-dark); margin-bottom: 6px; }
+  .empty-state p { color: #7c83a0; font-size: 13px; line-height: 1.7; max-width: 480px; margin: 0 auto; }
 
   /* Textbook grid */
-  .section-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem; }
-  .textbook-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-  .tb-card {
-    background: var(--white); padding: 1.25rem; border-radius: 1.25rem;
-    box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; flex-direction: column;
+  .textbook-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem; margin-bottom: 2.5rem;
   }
-  .tb-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-  .tb-card-header h3 { font-weight: 700; font-size: 1.05rem; }
-  .btn-remove { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: .25rem; transition: color .15s; }
+  .tb-card {
+    background: var(--white); border-radius: 16px; overflow: hidden;
+    box-shadow: var(--shadow); border: 1px solid var(--border);
+    display: flex; flex-direction: column;
+  }
+  .tb-card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px; border-bottom: 1px solid var(--border-light); background: var(--card-bg);
+  }
+  .tb-card-header h3 { font-weight: 700; font-size: 14px; color: var(--text-primary); }
+  .btn-remove { background: none; border: none; cursor: pointer; color: #c0c8d8; padding: 4px; display: flex; border-radius: 8px; transition: color .2s; }
   .btn-remove:hover { color: #ef4444; }
   .tb-preview {
-    width: 100%; height: 8rem; background: var(--bg); border-radius: .5rem;
-    overflow: hidden; margin-bottom: 1rem; position: relative;
+    width: 100%; height: 120px; background: #f7f8fc;
+    overflow: hidden; position: relative;
     display: flex; align-items: center; justify-content: center;
-    border: 1px dashed var(--border);
+    border-bottom: 1px solid var(--border-light);
   }
   .tb-preview img { width: 100%; height: 100%; object-fit: contain; background: #fff; padding: .5rem; }
   .pdf-badge { display: flex; flex-direction: column; align-items: center; color: #f43f5e; opacity: .8; }
@@ -155,9 +177,9 @@
   .loading-overlay span { font-size: .85rem; font-weight: 700; color: var(--blue); }
 
   .tb-results {
-    flex: 1; border-radius: .75rem; border: 1px solid transparent;
+    flex: 1; border: 1px solid transparent;
     transition: border-color .15s, background .15s;
-    padding: .75rem; margin: -.75rem; cursor: pointer;
+    padding: 14px 18px; cursor: pointer;
   }
   .tb-results:not(.disabled):hover { border-color: var(--blue-light); background: rgba(239,246,255,.5); }
   .tb-results.disabled { cursor: default; }
@@ -165,7 +187,7 @@
     display: flex; justify-content: space-between; align-items: center;
     margin-bottom: .5rem; padding-bottom: .375rem; border-bottom: 1px solid var(--border-light);
   }
-  .tb-results-title { font-size: .85rem; font-weight: 700; color: var(--text-secondary); }
+  .tb-results-title { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: .08em; text-transform: uppercase; }
   .copy-hint { font-size: .75rem; color: var(--blue); font-weight: 600; opacity: 0; transition: opacity .15s; display: flex; align-items: center; gap: .25rem; }
   .tb-results:hover .copy-hint { opacity: 1; }
   .item-list { list-style: none; font-size: .85rem; overflow-y: auto; max-height: 11rem; padding-right: .5rem; }
@@ -178,8 +200,8 @@
     font-size: .7rem; font-weight: 700; padding: .15rem .5rem;
     border-radius: .375rem; margin-left: auto; flex-shrink: 0; white-space: nowrap;
   }
-  .badge-mapped { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-light); }
-  .badge-other { background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); }
+  .badge-mapped { background: var(--blue-bg); color: var(--blue); border: 1px solid transparent; }
+  .badge-other { background: #f3f4f6; color: #9ca3af; border: 1px solid transparent; font-weight: 400; }
   .empty-items { color: var(--text-muted); font-style: italic; text-align: center; padding: 1rem; background: var(--bg); border-radius: .5rem; font-size: .85rem; }
   .error-box {
     display: flex; align-items: flex-start; gap: .5rem; color: #be123c;
@@ -201,36 +223,29 @@
 
   /* Analysis table */
   .table-section {
-    background: var(--white); border-radius: 1.25rem;
-    box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; margin-top: 2rem;
+    background: var(--white); border-radius: 16px;
+    box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; margin-bottom: 2.5rem;
   }
   .table-header {
-    padding: 1.5rem; border-bottom: 1px solid var(--border-light);
+    padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-light); background: var(--card-bg);
     display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;
   }
-  .table-header h2 { font-size: 1.2rem; font-weight: 800; }
-  .table-header p { font-size: .82rem; color: var(--text-secondary); margin-top: .25rem; }
+  .table-header h2 { font-size: 16px; font-weight: 800; color: var(--text-primary); }
+  .table-header p { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
   .table-header .code-inline {
     background: var(--bg); padding: .1rem .3rem; border-radius: .25rem;
     font-family: monospace; font-size: .8rem; color: var(--text-primary);
   }
-  .copy-btns {
-    display: flex; align-items: center; gap: .5rem;
-    background: var(--bg); padding: .375rem; border-radius: .75rem;
-  }
+  .copy-btns { display: flex; align-items: center; gap: 8px; }
   .btn-copy {
-    display: flex; align-items: center; gap: .5rem;
-    padding: .625rem 1rem; border-radius: .5rem; font-size: .82rem;
-    font-weight: 700; cursor: pointer; transition: all .15s; white-space: nowrap; border: none;
+    display: flex; align-items: center; gap: 6px;
+    background: #fff; color: var(--blue); border: 1px solid var(--blue-light);
+    border-radius: 10px; padding: 8px 16px; font-size: 12px;
+    font-weight: 700; cursor: pointer; transition: all .2s; white-space: nowrap;
   }
-  .btn-copy-primary {
-    background: var(--white); color: var(--text-secondary);
-    border: 1px solid var(--border) !important; box-shadow: var(--shadow);
-  }
-  .btn-copy-primary.active { background: var(--emerald); color: #fff; border-color: var(--emerald) !important; }
-  .btn-copy-secondary { background: transparent; color: var(--text-secondary); }
-  .btn-copy-secondary.active { background: var(--emerald); color: #fff; }
-  .divider { width: 1px; height: 1.5rem; background: #cbd5e1; }
+  .btn-copy:hover { background: var(--blue-bg); }
+  .btn-copy.active { background: var(--emerald); color: #fff; border-color: var(--emerald); }
+  .divider { display: none; }
   .copy-success-bar {
     background: var(--emerald-bg); padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--emerald-border);
@@ -240,12 +255,13 @@
   .copy-success-bar code { background: rgba(0,0,0,.06); padding: .1rem .3rem; border-radius: .25rem; font-family: monospace; }
   .table-scroll { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: .85rem; color: var(--text-secondary); }
-  thead { background: var(--bg); border-bottom: 1px solid var(--border); }
-  thead th { padding: .875rem 1.25rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); text-align: left; white-space: nowrap; }
-  tbody tr { border-bottom: 1px solid var(--border-light); transition: background .1s; }
-  tbody tr:hover { background: rgba(248,250,252,.7); }
-  tbody tr.row-other { background: rgba(248,250,252,.4); }
-  td { padding: .875rem 1.25rem; }
+  thead { background: #f8f9ff; border-bottom: 1px solid var(--border); }
+  thead th { padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); text-align: left; white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid #f7f8fc; transition: background .1s; }
+  tbody tr:nth-child(even) { background: var(--card-bg); }
+  tbody tr:hover { background: var(--blue-bg); }
+  tbody tr.row-other { background: #fcfcfd; }
+  td { padding: 12px 16px; vertical-align: middle; }
   td.cat { font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
   td.cat .other-label { color: var(--text-muted); }
   td.name { font-weight: 700; color: var(--text-primary); }
@@ -296,13 +312,12 @@
 
 <!-- ── MAIN APP ── -->
 <div id="app-screen">
-  <div class="inner">
 
-    <!-- Header -->
-    <header class="app-header">
+  <!-- Header: 전체 폭 그라데이션 바 -->
+  <header class="app-header">
       <div>
-        <h1>🔬 스마트 과학교구 분석기</h1>
-        <p>이미지 캡처 후 <strong>Ctrl+V</strong>를 누르면 2022 개정 기준에 맞게 추출됩니다. (소모품 자동 제외)</p>
+        <h1><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg> 스마트 과학교구 분석기</h1>
+        <p>이미지 캡처 후 Ctrl+V · 2022 개정 기준 자동 분석</p>
       </div>
       <div class="header-btns">
         <button class="btn-reset" id="btn-reset-key">
@@ -315,14 +330,19 @@
           파일 직접 선택
         </button>
       </div>
-    </header>
+  </header>
+
+  <div class="inner">
+
+    <!-- 섹션1: 교과서 이미지 -->
+    <div class="section-label">
+      <span>📁 교과서 이미지</span>
+      <div class="section-line"></div>
+      <span class="section-hint">Ctrl+V 로 바로 붙여넣기 가능</span>
+    </div>
 
     <!-- Textbook section -->
     <div id="textbook-section" style="display:none">
-      <p class="section-title">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue)"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-        분석 중인 교과서 현황
-      </p>
       <div class="textbook-grid" id="textbook-grid"></div>
     </div>
 
@@ -335,12 +355,19 @@
       <p>준비물 텍스트 한 줄만 캡처해도 완벽하게 인식합니다.<br>화면 아무 곳에서나 <strong>Ctrl+V</strong>를 눌러 분석을 시작하세요.</p>
     </div>
 
+    <!-- 섹션2: 분석표 -->
+    <div class="section-label" id="table-section-label" style="display:none">
+      <span>📊 통합 교구 분석표</span>
+      <div class="section-line"></div>
+      <span class="section-hint">2022 개정 기준</span>
+    </div>
+
     <!-- Analysis table -->
     <div class="table-section" id="table-section" style="display:none">
       <div class="table-header">
         <div>
-          <h2>📊 2022 개정 기준 통합 교구 분석표</h2>
-          <p>업로드된 내용 중 기준표에 없는 항목은 <span class="code-inline">기타 (기준표 외)</span>로 표 하단에 모아서 표시됩니다.</p>
+          <h2>통합 교구 분석표</h2>
+          <p>기준표 외 항목은 하단에 별도 표시됩니다</p>
         </div>
         <div class="copy-btns">
           <button class="btn-copy btn-copy-primary" id="btn-copy-header">
@@ -967,8 +994,11 @@ function renderAnalysisTable() {
   const data = allDone ? generateAnalysisData() : [];
 
   const section = document.getElementById('table-section');
-  section.style.display = (allDone && data.length > 0) ? 'block' : 'none';
-  if (!allDone || data.length === 0) return;
+  const label = document.getElementById('table-section-label');
+  const show = (allDone && data.length > 0);
+  section.style.display = show ? 'block' : 'none';
+  if (label) label.style.display = show ? 'flex' : 'none';
+  if (!show) return;
 
   const tbody = document.getElementById('analysis-tbody');
   tbody.innerHTML = data.map(row => {
