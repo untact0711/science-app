@@ -738,9 +738,19 @@ async function extractEquipmentFromImage(base64Data, mimeType) {
         try { const e = await res.json(); detail = (e && e.error && e.error.message) || ''; } catch {}
         if (res.status === 404) detail = `모델(${GEMINI_MODEL})을 찾을 수 없습니다. 구글이 모델을 내렸을 수 있습니다.`;
         if (res.status === 403) detail = 'API 키 권한이 없습니다. 키를 확인해 주세요.';
+        let fatal = [400,403,404].includes(res.status);
+        if (res.status === 429) {
+          // 사용량 한도. 재시도해도 쿼터만 더 소모되므로 즉시 중단합니다.
+          const m = detail.match(/retry in ([0-9hms.\s]+)/i);
+          const wait = m ? m[1].trim() : '';
+          detail = 'API 사용량 한도에 걸렸습니다(무료 등급 하루 한도).'
+                 + (wait ? ` 약 ${wait} 후에 다시 시도할 수 있습니다.` : ' 잠시 후 다시 시도해 주세요.')
+                 + ' 자주 쓰시려면 Google AI Studio에서 결제를 연결하거나 다른 모델로 바꾸세요.';
+          fatal = true;
+        }
         const err = new Error(`API 에러 ${res.status}${detail ? ' — ' + detail : ''}`);
-        // 400·403·404 는 재시도해도 결과가 같으므로 즉시 중단
-        if ([400,403,404].includes(res.status)) err.fatal = true;
+        // 400·403·404·429 는 재시도해도 결과가 같으므로 즉시 중단
+        if (fatal) err.fatal = true;
         throw err;
       }
       const result = await res.json();
