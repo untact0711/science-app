@@ -634,8 +634,10 @@ async function processFiles(files) {
       const extracted = await extractEquipmentFromImage(base64, mime);
       const mapped = mapToStandardDb(extracted);
       updateTb(tbId, { isLoading:false, items: mapped });
-    } catch {
-      updateTb(tbId, { isLoading:false, error:'서버와 통신 중 문제가 발생했습니다. 다시 시도해 주세요.' });
+    } catch (err) {
+      const detail = err && err.message ? err.message : '';
+      updateTb(tbId, { isLoading:false,
+        error: detail ? `분석 실패 — ${detail}` : '서버와 통신 중 문제가 발생했습니다. 다시 시도해 주세요.' });
     }
   }
 }
@@ -648,8 +650,12 @@ function updateTb(id, patch) {
 }
 
 // ── GEMINI API ────────────────────────────────────────────────────────────────
+// 모델명은 여기 한 곳만 바꾸면 됩니다. 구글이 모델을 내리면 404가 나므로,
+// 그때는 아래 값을 현재 제공되는 모델명으로 교체하세요.
+const GEMINI_MODEL = 'gemini-3.5-flash';
+
 async function extractEquipmentFromImage(base64Data, mimeType) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
   const promptText = `당신은 텍스트 판독 및 과학교구 추출 전문가입니다.\n업로드된 이미지는 교과서 실험의 '준비물' 텍스트 부분만 아주 얇게 잘라낸 캡처 조각이거나 전체 페이지입니다.\n\n[핵심 임무]\n1. 2022 개정 과학교구 설비 기준표에 해당하는 정식 교구(비커, 온도계, 스마트 기기 등)와 일반 도구(가위, 자, 테이프 등)만 추출하세요.\n2. [강력 제외] 물, 에탄올, 시약 등의 '액체/화학 물질'과 거름종이, 시약포지, 약포지 등 1회성 '소모품류'는 목록에서 절대 추출하지 마세요.\n3. [암석·광물 표본 주의] '전원장치'는 반드시 '직류전원장치'로 추출하세요. '암석 표본'이라고 뭉뚱그리지 말고, 이미지에 보이는 대로 '화성암 표본', '퇴적암 표본', '변성암 표본'을 각각 개별 항목으로 추출하세요. '광물 표본'도 별도로 추출하세요.\n\n결과는 반드시 제공된 JSON 스키마에 따라 'equipment' 배열로 응답하세요.`;
 
   const payload = {
@@ -664,7 +670,16 @@ async function extractEquipmentFromImage(base64Data, mimeType) {
   for (let i=0;i<5;i++) {
     try {
       const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-      if (!res.ok) throw new Error(`API 에러 (${res.status})`);
+      if (!res.ok) {
+        let detail = '';
+        try { const e = await res.json(); detail = (e && e.error && e.error.message) || ''; } catch {}
+        if (res.status === 404) detail = `모델(${GEMINI_MODEL})을 찾을 수 없습니다. 구글이 모델을 내렸을 수 있습니다.`;
+        if (res.status === 403) detail = 'API 키 권한이 없습니다. 키를 확인해 주세요.';
+        const err = new Error(`API 에러 ${res.status}${detail ? ' — ' + detail : ''}`);
+        // 400·403·404 는 재시도해도 결과가 같으므로 즉시 중단
+        if ([400,403,404].includes(res.status)) err.fatal = true;
+        throw err;
+      }
       const result = await res.json();
       const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
       if (text) {
@@ -678,7 +693,7 @@ async function extractEquipmentFromImage(base64Data, mimeType) {
       }
       return [];
     } catch(err) {
-      if (i===4) throw err;
+      if (err.fatal || i===4) throw err;
       await new Promise(r=>setTimeout(r,delays[i]));
     }
   }
