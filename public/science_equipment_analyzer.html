@@ -685,6 +685,11 @@ async function extractEquipmentFromImage(base64Data, mimeType) {
 }
 
 // ── MAPPING ───────────────────────────────────────────────────────────────────
+// 자석(소모품), 자석젓개/자석교반기 등 기준표 외 항목 제외
+const MAGNET_EXCLUDE = ['자석젓개','자석 젓개','자석교반기','자석 교반기','자석',
+  '전선집게','전선 집게','집게달린전선','집게 달린 전선','L자전극','L 자 전극','L자 전극',
+  '금속집게','금속 집게'];
+
 // "암석표본"처럼 뭉뚱그린 표현 → 화성암/퇴적암/변성암 세 항목으로 확장
 const ROCK_EXPAND_KEYWORDS = ['암석표본','암석표본','암석시료','암석샘플'];
 const ROCK_TYPES = ['화성암 표본','퇴적암 표본','변성암 표본'];
@@ -701,11 +706,14 @@ function matchOneItem(n) {
         if (nk==='장갑' && n.includes('화학')) return false;
         if (nk==='집게' && n.includes('시험관')) return false;
         if (nk==='집게' && n.includes('증발')) return false;
+        if (nk==='집게' && n.includes('전선')) return false;
+        if (nk==='집게' && n.includes('금속')) return false;
         if (nk==='수조' && n.includes('사각')) return false;
         if (nk==='수조' && n.includes('원형')) return false;
         if (nk==='마스크' && n.includes('방독')) return false;
         if (nk==='보안경' && n.includes('레이저')) return false;
         if (nk==='보안경' && n.includes('고글')) return false;
+        if (nk==='자' && n.includes('자석')) return false;
         return n.includes(nk);
       }));
     }
@@ -713,8 +721,14 @@ function matchOneItem(n) {
 }
 
 function mapToStandardDb(extractedItems) {
+  // 기준표 외 항목(자석, 자석젓개, L자전극 등) 사전 제외
+  const filtered = extractedItems.filter(item => {
+    const n = item.replace(/\s+/g,'');
+    return !MAGNET_EXCLUDE.some(kw => n === kw.replace(/\s+/g,''));
+  });
+
   const pairs = [];
-  extractedItems.forEach(item => {
+  filtered.forEach(item => {
     const n = item.replace(/\s+/g,'');
     // 암석표본 뭉뚱그린 표현 → 세 암석 종류 모두 확장
     if (ROCK_EXPAND_KEYWORDS.some(kw => n===kw || n.includes(kw))) {
